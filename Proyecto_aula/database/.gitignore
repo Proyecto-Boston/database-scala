@@ -1,0 +1,30 @@
+# Ignorar archivos generados por IDEs y editores
+.vscode/
+.metals/
+.bsp/
+.scala-build/
+
+# Ignorar archivos generados por SBT
+target/
+
+# Ignorar archivos generados por Docker
+database/target/
+
+# Ignorar archivos de configuración local
+*.iml
+.idea/
+
+# Ignorar archivos de respaldo y temporales
+*~
+*.swp
+
+# Ignorar archivos de registro y salida
+*.log
+
+# Ignorar archivos de respaldo y temporales de Scala
+*.bak
+*.tmp
+
+# Ignorar archivos de construcción y configuración personal
+build.sbt.local
+*.sbt.local
