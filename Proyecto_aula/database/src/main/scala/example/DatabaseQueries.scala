@@ -19,23 +19,17 @@ object DatabaseQueries {
   val urlEsclavo = "jdbc:mariadb://url-esclavo" 
   var urlActiva = urlMaestro
 
+  case class ID(id: Int)
   case class Usuario(id: Int, nombre: String, apellido: String)
+  case class Directorios(nombre: String, ruta: String, usuarioId: Int)
+  case class Archivo(nombre: String, ruta: String, tamano: Long, checksum: String, usuarioId: Int)
+  case class Compartir(idArchivo: Int, idUsuario: Int)
+  case class Mover(id: Int, nuevaRuta: String)
 
-  def buscarUsuario(id: Int)(implicit session: DBSession = AutoSession) = {
+  // Conexión maestro y esclavo
 
-    sql"SELECT * FROM usuarios WHERE id = $id"
-    .map{ rs =>
-      Map(
-        "id" -> rs.int("id"),
-        "nombre" -> rs.string("nombre"), 
-        "apellido" -> rs.string("apellido")
-      )
-    }.single().map(x => x)
-
-  }
-
-  /*def init() = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  /*
+  def init() = {
       conmutarMaestroEsclavo()
     }
   }
@@ -53,85 +47,80 @@ object DatabaseQueries {
     } catch {
       case _: Exception => false
     }
-  }
+  } 
+  */
 
   // Métodos
 
-  def registrarUsuario(id: Int, nombre: String, email: String, password: String)(implicit session: DBSession = AutoSession) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
-      sql"INSERT INTO usuarios VALUES ($id, $nombre, $email, $password)"
-        .update().apply()
-    }
+  def buscarUsuario(ID)(implicit session: DBSession = AutoSession) = {
+
+    sql"SELECT * FROM usuarios WHERE id = $id"
+    .map{ rs =>
+      Map(
+        "id" -> rs.int("id"),
+        "nombre" -> rs.string("nombre"), 
+        "apellido" -> rs.string("apellido")
+      )
+    }.single().map(x => x)
+
   }
 
-  def buscarUsuario(id: Int) = { 
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection)(implicit session: DBSession = AutoSession) = { conn =>
-      sql"SELECT * FROM usuarios WHERE id = $id"  
-        .map( rs =>
-          (rs.int("id"), rs.string("nombre"), rs.string("apellido"))
-        ).single().apply()
-    }
-  }  
+  def registrarUsuario(Usuario)(implicit session: DBSession = AutoSession) = {
+      sql"INSERT INTO usuarios (nombre, apellido) VALUES ($nombre, $apeliido)"
+        .update()
+  }
+  
 
-  def crearDirectorio(nombre:String, ruta:String, usuarioId: Int) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  def crearDirectorio(Directorios)(implicit session: DBSession = AutoSession) = {
       sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $ruta, $usuarioId)"
-        .update().apply() 
+        .update()
     }
-  }
+  
 
-  def crearSubDirectorio(nombre:String, rutaPadre:String, usuarioId: Int) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  def crearSubDirectorio(Directorios)(implicit session: DBSession = AutoSession) = {
       val nuevaRuta = s"$rutaPadre/$nombre"
       sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $nuevaRuta, $usuarioId)"
-        .update().apply()
+        .update()
     }
-  }
+  
 
-  def guardarArchivo(nombre:String, ruta:String, tamano:Long, checksum:String, usuarioId: Int) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  def guardarArchivo(Archivo)(implicit session: DBSession = AutoSession) = {
       sql"INSERT INTO archivos (nombre, ruta, tamano, checksum, usuario_id) VALUES ($nombre, $ruta, $tamano, $checksum, $usuarioId)"
-        .update().apply()
+        .update()
     }
-  }
+  
 
-  def descargarArchivo(id: Int) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  def descargarArchivo(ID)(implicit session: DBSession = AutoSession) = {
       sql"SELECT * FROM archivos WHERE id = $id"
         .map(rs => 
           (rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.long("tamano"), rs.string("checksum"), rs.int("usuario_id"))
-        ).single().apply()  
+        ).single()
     }
-  }
+  
 
-  def moverArchivo(id: Int, nuevaRuta: String) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  def moverArchivo(Mover)(implicit session: DBSession = AutoSession) = {
       sql"UPDATE archivos SET ruta = $nuevaRuta WHERE id = $id"
-        .update().apply()
+        .update()
     }
-  }
+  
 
-  def eliminarArchivo(id: Int) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  def eliminarArchivo(ID)(implicit session: DBSession = AutoSession) = {
       sql"DELETE FROM archivos WHERE id = $id"  
-        .update().apply()
+        .update()
     }
-  }
+  
 
-  def compartirArchivo(idArchivo: Int, idUsuario: Int) = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn =>
+  def compartirArchivo(Compartir)(implicit session: DBSession = AutoSession) = {
       sql"INSERT INTO compartidos (archivo_id, usuario_id) VALUES ($idArchivo, $idUsuario)"
-        .update().apply()
+        .update()
     }
-  }
+  
 
-  def reporteEspacio() = {
-    ConnectionPool.borrowConnection(DatabaseConnectionManager.getConnection) { conn => 
+  def reporteEspacio()(implicit session: DBSession = AutoSession) = {
       sql"SELECT usuario_id, SUM(tamano) AS espacio FROM archivos GROUP BY usuario_id"
         .map(rs =>  
           (rs.int("usuario_id"), rs.long("espacio")) 
-        ).list().apply()
+        ).list()
     }
-  }
-*/
+  
 }
