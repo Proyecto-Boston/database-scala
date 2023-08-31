@@ -19,13 +19,6 @@ object DatabaseQueries {
   val urlEsclavo = "jdbc:mariadb://url-esclavo" 
   var urlActiva = urlMaestro
 
-  case class ID(id: Int)
-  case class Usuario(id: Int, nombre: String, apellido: String)
-  case class Directorios(nombre: String, ruta: String, usuarioId: Int)
-  case class Archivo(nombre: String, ruta: String, tamano: Long, checksum: String, usuarioId: Int)
-  case class Compartir(idArchivo: Int, idUsuario: Int)
-  case class Mover(id: Int, nuevaRuta: String)
-
   // Conexión maestro y esclavo
 
   /*
@@ -52,7 +45,7 @@ object DatabaseQueries {
 
   // Métodos
 
-  def buscarUsuario(ID)(implicit session: DBSession = AutoSession) = {
+  def buscarUsuario(id: Int)(implicit session: DBSession = AutoSession) = {
 
     sql"SELECT * FROM usuarios WHERE id = $id"
     .map{ rs =>
@@ -65,61 +58,68 @@ object DatabaseQueries {
 
   }
 
-  def registrarUsuario(Usuario)(implicit session: DBSession = AutoSession) = {
-      sql"INSERT INTO usuarios (nombre, apellido) VALUES ($nombre, $apeliido)"
+  def registrarUsuario(nombre: String, apellido: String)(implicit session: DBSession = AutoSession) = {
+      sql"INSERT INTO usuarios (nombre, apellido) VALUES ($nombre, $apellido)"
         .update()
   }
   
 
-  def crearDirectorio(Directorios)(implicit session: DBSession = AutoSession) = {
+  def crearDirectorio(nombre: String, ruta: String, usuarioId: Int)(implicit session: DBSession = AutoSession) = {
       sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $ruta, $usuarioId)"
         .update()
     }
   
 
-  def crearSubDirectorio(Directorios)(implicit session: DBSession = AutoSession) = {
+  def crearSubDirectorio(nombre: String, rutaPadre: String, usuarioId: Int)(implicit session: DBSession = AutoSession) = {
       val nuevaRuta = s"$rutaPadre/$nombre"
       sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $nuevaRuta, $usuarioId)"
         .update()
     }
   
 
-  def guardarArchivo(Archivo)(implicit session: DBSession = AutoSession) = {
-      sql"INSERT INTO archivos (nombre, ruta, tamano, checksum, usuario_id) VALUES ($nombre, $ruta, $tamano, $checksum, $usuarioId)"
+  def guardarArchivo(nombre: String, ruta: String, tamano: Double, usuarioId: Int)(implicit session: DBSession = AutoSession) = {
+      sql"INSERT INTO archivos (nombre, ruta, tamaño, usuario_id) VALUES ($nombre, $ruta, $tamano, $usuarioId)"
         .update()
     }
   
 
-  def descargarArchivo(ID)(implicit session: DBSession = AutoSession) = {
+  def descargarArchivo(id: Int)(implicit session: DBSession = AutoSession) = {
       sql"SELECT * FROM archivos WHERE id = $id"
-        .map(rs => 
-          (rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.long("tamano"), rs.string("checksum"), rs.int("usuario_id"))
-        ).single()
-    }
+      .map{ rs =>
+      Map(
+        "id" -> rs.int("id"),
+        "nombre" -> rs.string("nombre"), 
+        "ruta" -> rs.string("ruta"),
+        "tamaño" -> rs.double("tamaño"),
+        "usuario_id" -> rs.int("usuario_id")
+      )
+    }.single().map(x => x)
+  }
+    
   
 
-  def moverArchivo(Mover)(implicit session: DBSession = AutoSession) = {
+  def moverArchivo(id: Int, nuevaRuta: String)(implicit session: DBSession = AutoSession) = {
       sql"UPDATE archivos SET ruta = $nuevaRuta WHERE id = $id"
         .update()
     }
   
 
-  def eliminarArchivo(ID)(implicit session: DBSession = AutoSession) = {
+  def eliminarArchivo(id: Int)(implicit session: DBSession = AutoSession) = {
       sql"DELETE FROM archivos WHERE id = $id"  
         .update()
     }
   
 
-  def compartirArchivo(Compartir)(implicit session: DBSession = AutoSession) = {
+  def compartirArchivo(idArchivo: Int, idUsuario: Int)(implicit session: DBSession = AutoSession) = {
       sql"INSERT INTO compartidos (archivo_id, usuario_id) VALUES ($idArchivo, $idUsuario)"
         .update()
     }
   
 
   def reporteEspacio()(implicit session: DBSession = AutoSession) = {
-      sql"SELECT usuario_id, SUM(tamano) AS espacio FROM archivos GROUP BY usuario_id"
+      sql"SELECT usuario_id, SUM(tamaño) AS espacio FROM archivos GROUP BY usuario_id"
         .map(rs =>  
-          (rs.int("usuario_id"), rs.long("espacio")) 
+          (rs.int("usuario_id"), rs.double("espacio")) 
         ).list()
     }
   
