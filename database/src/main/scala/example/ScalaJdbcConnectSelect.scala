@@ -5,7 +5,7 @@ import example.DatabaseQueries
 
 object Main extends App {
 
-  val usuario = DatabaseQueries.buscarUsuario(1).get
+  val usuario = DatabaseQueries.buscarUsuario(20)
   println(usuario)
   val registro = DatabaseQueries.registrarUsuario("nombre","apellido")
   println(registro)
@@ -23,7 +23,7 @@ object Main extends App {
   println(eliminarArchivo)
   val compartirArchivo = DatabaseQueries.compartirArchivo(1, 1)
   println(compartirArchivo)
-  val reporteEspacio = DatabaseQueries.reporteEspacio()
+  val reporteEspacio = DatabaseQueries.reporteEspacio(1)
   println(reporteEspacio)
 
   
