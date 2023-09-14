@@ -4,11 +4,11 @@ import example.DatabaseConnectionManager
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import controllers.UserController
+import controllers.FileController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.UserModel
+import models.FileModel
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 import java.sql.Connection
@@ -16,7 +16,7 @@ import javax.sql.DataSource
 import org.mariadb.jdbc.MariaDbPoolDataSource
 import scalikejdbc.ConnectionPool
 
-class UserRoute(userController: UserController) {
+class FileRoute(fileController: FileController) {
 
   Class.forName("org.mariadb.jdbc.Driver")
   val config = ConfigFactory.load()
@@ -25,24 +25,26 @@ class UserRoute(userController: UserController) {
   val password = DatabaseConnectionManager.dbPassword
 
   ConnectionPool.singleton(url, user, password)  
-  case class UserCreateRequest(nombre: String, apellido: String)
+  case class FileCreateRequest(nombre: String, ruta: String, tamano: Double, usuario_id: Int)
 
-  val route: Route = pathPrefix("users") {
+
+
+  val route: Route = pathPrefix("file") {
     get {
       path(IntNumber) { id =>
-        val result: Future[Either[String, UserModel]] = userController.buscarUsuario(id)
+        val result: Future[Either[String, FileModel]] = fileController.buscarArchivo(id)
         onSuccess(result) {
-          case Right(user) => complete(user)
+          case Right(file) => complete(file)
           case Left(errorMessage) => complete(HttpResponse(StatusCodes.NotFound, entity = errorMessage))
         }
       }
     } ~
-    path("register") {
+    path("saveFile") {
       post {
-        entity(as[UserCreateRequest]) { user =>
-          val result: Future[Either[String, UserModel]] = userController.registrarUsuario(user.nombre, user.apellido)
+        entity(as[FileCreateRequest]) { file =>
+          val result: Future[Either[String, FileModel]] = fileController.guardarArchivo(file.nombre, file.ruta, file.tamano, file.usuario_id)
           onSuccess(result) {
-            case Right(newUser) => complete(StatusCodes.Created, newUser)
+            case Right(newFile) => complete(StatusCodes.Created, newFile)
             case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
           }
         }

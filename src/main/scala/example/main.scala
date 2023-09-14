@@ -6,9 +6,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import models.UserModel
-import routes.UserRoute
-import controllers.UserController
+
+import controllers.{UserController, FileController, DirectoryController}
+import routes.{UserRoute, FileRoute, DirectoryRoute}
+import models.{UserModel, FileModel, DirectoryModel}
+
 
 
 
@@ -18,10 +20,16 @@ object Main extends App {
 
   val userController = new UserController
   val userRoute = new UserRoute(userController)
+  
+  val fileController = new FileController
+  val fileRoute = new FileRoute(fileController)
 
+  val directoryController = new DirectoryController
+  val directoryRoute = new DirectoryRoute(directoryController)
 
-  val bindingFuture = Http().bindAndHandle(userRoute.route, "localhost", 8080)
-
+  val routes: Route = userRoute.route ~ fileRoute.route ~ directoryRoute.route
+  
+  val bindingFuture = Http().bindAndHandle(routes, "localhost", 8080)
   println(s"Server online at http://localhost:8080/")
 
   // Mantén el programa en ejecución

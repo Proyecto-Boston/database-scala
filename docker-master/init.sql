@@ -26,7 +26,7 @@ CREATE TABLE `archivos` (
 	`id` INT NOT NULL AUTO_INCREMENT,
 	`nombre` VARCHAR(100) NOT NULL,
 	`ruta` VARCHAR(200) NOT NULL,
-	`tamaño` DOUBLE NOT NULL,
+	`tamano` DOUBLE NOT NULL,
 	`usuario_id` INT NOT NULL,
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `usuario_id` (`usuario_id`) USING BTREE,

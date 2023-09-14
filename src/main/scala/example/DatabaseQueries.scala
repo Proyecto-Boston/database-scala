@@ -26,7 +26,7 @@ object DatabaseQueries {
   val urlEsclavo = config.getString("db.urlEsclavo")
   var urlActiva = urlMaestro
   case class Usuario(id: Int, nombre: String, apellido: String)
-  case class Archivos(id: Int, nombre: String, ruta: String, tamaño: Double, usuario_id: Int)
+  case class Archivos(id: Int, nombre: String, ruta: String, tamano: Double, usuario_id: Int)
 
   // Conexión maestro y esclavo
 
@@ -161,7 +161,7 @@ object DatabaseQueries {
 
   def guardarArchivo(nombre: String, ruta: String, tamano: Double, usuarioId: Int)(implicit session: DBSession = AutoSession): Either[String, Json] = {
     try {
-      val result = sql"INSERT INTO archivos (nombre, ruta, tamaño, usuario_id) VALUES ($nombre, $ruta, $tamano, $usuarioId)"
+      val result = sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id) VALUES ($nombre, $ruta, $tamano, $usuarioId)"
         .update()
 
       if (result > 0) {
@@ -190,14 +190,14 @@ object DatabaseQueries {
     try{
       val archivoOption = sql"SELECT * FROM archivos WHERE id = $id"
         .map{ rs =>
-          Archivos(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.double("tamaño"), rs.int("usuario_id"))
+          Archivos(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.double("tamano"), rs.int("usuario_id"))
         }.single().map { archivo => 
         // Respuesta exitosa con estado 200 y JSON de usuario
         val jsonArchivo = Json.obj(
           "id" -> archivo.id.asJson,
           "nombre" -> archivo.nombre.asJson,
           "ruta" -> archivo.ruta.asJson,
-          "tamaño" -> archivo.tamaño.asJson,
+          "tamano" -> archivo.tamano.asJson,
           "usuario_id" -> archivo.usuario_id.asJson
         )
         Right(jsonArchivo)
@@ -267,7 +267,7 @@ object DatabaseQueries {
 
   def reporteEspacio(usuario_id: Int)(implicit session: DBSession = AutoSession): Either[String, Json] = {
     try {
-      val resultado = sql"SELECT usuario_id, SUM(tamaño) AS espacio FROM archivos WHERE usuario_id = $usuario_id"
+      val resultado = sql"SELECT usuario_id, SUM(tamano) AS espacio FROM archivos WHERE usuario_id = $usuario_id"
         .map(rs =>  
           (rs.int("usuario_id"), rs.double("espacio")) 
         ).single()
