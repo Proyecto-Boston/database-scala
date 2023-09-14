@@ -7,7 +7,7 @@ ThisBuild / organizationName := "example"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "database",
+    name := "database-scala",
     
     libraryDependencies ++= Seq(
       scalaTest % Test, "org.scalikejdbc" %% "scalikejdbc" % "4.0.+" exclude("org.scala-lang.modules", "scala-parser-combinators_2.12"),

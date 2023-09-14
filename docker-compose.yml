@@ -10,7 +10,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./database/docker-master/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker-master/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   mariadb-slave:
     image: mariadb:latest
@@ -21,4 +21,4 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - ./database/docker-slave/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker-slave/init.sql:/docker-entrypoint-initdb.d/init.sql

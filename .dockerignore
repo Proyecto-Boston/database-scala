@@ -1,0 +1,4 @@
+# Ignorar archivos y directorios generados por Docker
+target/
+docker-master/init.sql
+docker-slave/init.sql

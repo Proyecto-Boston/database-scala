@@ -4,12 +4,12 @@
 .bsp/
 .scala-build/
 
-database/src/main/resources/
+src/main/resources/
 # Ignorar archivos generados por SBT
 target/
 
 # Ignorar archivos generados por Docker
-database/target/
+target/
 
 # Ignorar archivos de configuración local
 *.iml
