@@ -14,6 +14,7 @@ object DatabaseConnectionManager {
   val dbPassword = config.getString("db.password")
 
 
+
   private val pool: DataSource = new MariaDbPoolDataSource()
   pool.asInstanceOf[MariaDbPoolDataSource].setUrl(dbUrl)
   pool.asInstanceOf[MariaDbPoolDataSource].setUser(dbUser)

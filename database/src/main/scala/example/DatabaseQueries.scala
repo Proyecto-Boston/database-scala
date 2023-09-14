@@ -1,28 +1,30 @@
-package example
+/* package example
 
-import example.DatabaseConnectionManager
-
+import example.{DatabaseConnectionManager => ConnectionManager}
 import scalikejdbc._
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
+import com.typesafe.config.ConfigFactory
+import java.sql.Connection
+import javax.sql.DataSource
+import org.mariadb.jdbc.MariaDbPoolDataSource
+
 
 object DatabaseQueries {
   Class.forName("org.mariadb.jdbc.Driver")
-  
-  val url = DatabaseConnectionManager.dbUrl
-  val user = DatabaseConnectionManager.dbUser 
-  val password = DatabaseConnectionManager.dbPassword
+  val config = ConfigFactory.load()
+  val url = ConnectionManager.dbUrl
+  val user = ConnectionManager.dbUser
+  val password = ConnectionManager.dbPassword
 
-  ConnectionPool.singleton(url, user, password)  
+  ConnectionPool.singleton(url, user, password)
 
 
-  // Conexión 
-  val urlMaestro = "jdbc:mariadb://url-maestro"
-  val urlEsclavo = "jdbc:mariadb://url-esclavo" 
+  // Conexión
+  val urlMaestro = config.getString("db.urlMaestro")
+  val urlEsclavo = config.getString("db.urlEsclavo")
   var urlActiva = urlMaestro
-
-
   case class Usuario(id: Int, nombre: String, apellido: String)
   case class Archivos(id: Int, nombre: String, ruta: String, tamaño: Double, usuario_id: Int)
 
@@ -291,3 +293,4 @@ object DatabaseQueries {
   }
 
 }
+ */

@@ -4,6 +4,7 @@
 .bsp/
 .scala-build/
 
+database/src/main/resources/
 # Ignorar archivos generados por SBT
 target/
 
