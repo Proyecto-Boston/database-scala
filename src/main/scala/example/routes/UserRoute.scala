@@ -1,7 +1,5 @@
 package routes
 
-import example.DatabaseConnectionManager
-
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import controllers.UserController
@@ -11,20 +9,9 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import models.UserModel
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
-import java.sql.Connection
-import javax.sql.DataSource
-import org.mariadb.jdbc.MariaDbPoolDataSource
-import scalikejdbc.ConnectionPool
 
 class UserRoute(userController: UserController) {
 
-  Class.forName("org.mariadb.jdbc.Driver")
-  val config = ConfigFactory.load()
-  val url = DatabaseConnectionManager.dbUrl
-  val user = DatabaseConnectionManager.dbUser 
-  val password = DatabaseConnectionManager.dbPassword
-
-  ConnectionPool.singleton(url, user, password)  
   case class UserCreateRequest(nombre: String, apellido: String)
 
   val route: Route = pathPrefix("users") {

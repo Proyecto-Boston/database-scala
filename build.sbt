@@ -23,6 +23,6 @@ lazy val root = (project in file("."))
       "com.typesafe.akka" %% "akka-http" % "10.2.4", // Para Akka HTTP
       "com.typesafe.akka" %% "akka-http-spray-json" % "10.2.4", // Para manejo de JSON
       "com.typesafe.akka" %% "akka-stream" % "2.6.14", // Para manejo de streams
-      "de.heikoseeberger" %% "akka-http-circe" % "1.37.0"
+      "de.heikoseeberger" %% "akka-http-circe" % "1.37.0",
     )
   )

@@ -1,7 +1,5 @@
 package routes
 
-import example.DatabaseConnectionManager
-
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import controllers.FileController
@@ -10,24 +8,10 @@ import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import models.FileModel
 import scala.concurrent.Future
-import com.typesafe.config.ConfigFactory
-import java.sql.Connection
-import javax.sql.DataSource
-import org.mariadb.jdbc.MariaDbPoolDataSource
-import scalikejdbc.ConnectionPool
 
 class FileRoute(fileController: FileController) {
 
-  Class.forName("org.mariadb.jdbc.Driver")
-  val config = ConfigFactory.load()
-  val url = DatabaseConnectionManager.dbUrl
-  val user = DatabaseConnectionManager.dbUser 
-  val password = DatabaseConnectionManager.dbPassword
-
-  ConnectionPool.singleton(url, user, password)  
   case class FileCreateRequest(nombre: String, ruta: String, tamano: Double, usuario_id: Int)
-
-
 
   val route: Route = pathPrefix("file") {
     get {
