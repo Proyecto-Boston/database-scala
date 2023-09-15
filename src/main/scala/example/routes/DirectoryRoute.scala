@@ -6,15 +6,12 @@ import controllers.DirectoryController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.DirectoryModel
+import models.{DirectoryModel, DirectoryCreateModel}
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 
 
 class DirectoryRoute(directoryController: DirectoryController) {
-
-  case class DirectoryCreateRequest(nombre: String, ruta: String, usuario_id: Int)
-
 
   val route: Route = pathPrefix("directory") {
     get {
@@ -28,7 +25,7 @@ class DirectoryRoute(directoryController: DirectoryController) {
     } ~
     path("saveDirectory") {
       post {
-        entity(as[DirectoryCreateRequest]) { directory =>
+        entity(as[DirectoryCreateModel]) { directory =>
           val result: Future[Either[String, DirectoryModel]] = directoryController.guardarDirectorio(directory.nombre, directory.ruta, directory.usuario_id)
           onSuccess(result) {
             case Right(newDirectory) => complete(StatusCodes.Created, newDirectory)

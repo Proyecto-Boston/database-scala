@@ -6,15 +6,13 @@ import controllers.UserController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.UserModel
+import models.{UserModel, UserCreateModel}
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 
 class UserRoute(userController: UserController) {
 
-  case class UserCreateRequest(nombre: String, apellido: String)
-
-  val route: Route = pathPrefix("users") {
+  val route: Route = pathPrefix("user") {
     get {
       path(IntNumber) { id =>
         val result: Future[Either[String, UserModel]] = userController.buscarUsuario(id)
@@ -26,14 +24,26 @@ class UserRoute(userController: UserController) {
     } ~
     path("register") {
       post {
-        entity(as[UserCreateRequest]) { user =>
+        entity(as[UserCreateModel]) { user =>
           val result: Future[Either[String, UserModel]] = userController.registrarUsuario(user.nombre, user.apellido)
           onSuccess(result) {
             case Right(newUser) => complete(StatusCodes.Created, newUser)
             case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
           }
         }
+      } 
+    } ~
+    path("delete" / IntNumber) { id =>
+      put {
+        val result: Future[Either[String, UserModel]] = userController.eliminarUsuario(id)
+        onSuccess(result) {
+          case Right(deletedUser) => complete(StatusCodes.OK, deletedUser)
+          case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+        }
       }
     }
+
+
+
   }
 }
