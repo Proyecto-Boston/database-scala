@@ -1,8 +1,7 @@
 package controllers
 
 import scalikejdbc._
-import models.FileModel
-import models.FileReportModel
+import models.{FileModel, FileReportModel}
 
 import io.circe._
 import io.circe.generic.auto._
@@ -22,7 +21,7 @@ class FileController {
         val archivoOption = sql"SELECT * FROM archivos WHERE id = $id"
           .map { rs =>
 
-            FileModel(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.double("tamano"), rs.int("usuario_id"))
+            FileModel(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.double("tamano"), rs.int("usuario_id"), rs.boolean("habilitado"))
           }.single().map { file =>
             // Respuesta exitosa con estado 200 y JSON de usuario
             Right(file)
@@ -43,7 +42,7 @@ class FileController {
   def guardarArchivo(nombre: String, ruta: String, tamano: Double, usuario_id: Int): Future[Either[String, FileModel]] = {
   Future {
     try {
-      val result = sql"INSERT INTO archivos (nombre, ruta, usuario_id) VALUES ($nombre, $ruta, $tamano, $usuario_id)"
+      val result = sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, habilitado) VALUES ($nombre, $ruta, $tamano, $usuario_id, true)"
         .update()
 
       if (result > 0) {
@@ -51,7 +50,7 @@ class FileController {
         val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
         // Crea una instancia de DirectoryModel con el ID real
-        val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id)
+        val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true)
         Right(archivo)
       } else {
         Left("No se pudo agregar el archivo")
@@ -77,17 +76,10 @@ class FileController {
 
           resultado match {
             case Right(fileModel) =>
-              // Aquí puedes trabajar con el resultado Right (éxito)
-              // Por ejemplo, imprimir el archivo
-              println(s"Archivo encontrado: $fileModel")
               Right(fileModel)
             case Left(errorMessage) =>
-              // Aquí puedes manejar el caso Left (error)
-              // Por ejemplo, imprimir el mensaje de error
-              println(s"Error: $errorMessage")
               Left(errorMessage)
           }
-
         } else {
           // La actualización no afectó ninguna fila, devolver un mensaje de error
           Left("No se pudo mover el archivo, ID no encontrado o la ruta no ha cambiado")
@@ -143,7 +135,7 @@ class FileController {
         val resultado = sql"SELECT usuario_id, SUM(tamano) AS espacio FROM archivos WHERE usuario_id = $usuario_id"
           .map { rs =>
 
-            FileReportModel(rs.int("id"), rs.double("tamano"), rs.int("usuario_id"))
+            FileReportModel(rs.int("usuario_id"), rs.double("espacio"))
           }.single().map { file =>
             // Respuesta exitosa con estado 200 y JSON de usuario
             Right(file)
@@ -160,5 +152,22 @@ class FileController {
 }
     }
   }
+  def obtenerArchivosPorUsuario(usuario_id: Int): Future[Either[String, List[FileModel]]] = {
+  Future {
+    try {
+      val archivos = sql"SELECT * FROM archivos WHERE habilitado = true AND usuario_id = $usuario_id".map { rs =>
+        FileModel(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.double("tamano"), rs.int("usuario_id"), rs.boolean("habilitado"))
+      }.list()
+
+      // Respuesta exitosa con estado 200 y lista de archivos
+      Right(archivos)
+    } catch {
+      case e: Exception =>
+        println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+        Left("Error interno del servidor")
+    }
+  }
+}
+
 
 }

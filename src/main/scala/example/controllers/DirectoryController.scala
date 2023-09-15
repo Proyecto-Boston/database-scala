@@ -84,5 +84,81 @@ class DirectoryController {
     }
   }
   }
+  def deshabilitarSubdirectorios(idDirectorio: Int): Future[Either[String, String]] = {
+    Future {
+      try {
+        // Deshabilita todos los subdirectorios del directorio especificado
+        val disableResult = sql"UPDATE directorios SET habilitado = false WHERE id_padre = $idDirectorio"
+          .update()
+
+        if (disableResult > 0) {
+          // Subdirectorios deshabilitados correctamente
+          Right("Subdirectorios deshabilitados correctamente")
+        } else {
+          // No se encontraron subdirectorios o no se pudieron deshabilitar
+          Left("No se pudieron deshabilitar los subdirectorios")
+        }
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}")
+          Left("Error interno del servidor")
+      }
+    }
+  }
+
+  def deshabilitarArchivos(idDirectorio: Int): Future[Either[String, String]] = {
+    Future {
+      try {
+        // Deshabilita todos los archivos del directorio especificado
+        val disableResult = sql"UPDATE archivos SET habilitado = false WHERE directorio_id = $idDirectorio"
+          .update()
+
+        if (disableResult > 0) {
+          // Archivos deshabilitados correctamente
+          Right("Archivos deshabilitados correctamente")
+        } else {
+          // No se encontraron archivos o no se pudieron deshabilitar
+          Left("No se pudieron deshabilitar los archivos")
+        }
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}")
+          Left("Error interno del servidor")
+      }
+    }
+  }
+  /*
+  def borrarDirectorio(id: Int): Future[Either[String, String]] = {
+    Future {
+      try {
+        // Deshabilita todos los subdirectorios del directorio especificado
+        deshabilitarSubdirectorios(id).flatMap {
+          case Right(_) =>
+            // Deshabilita todos los archivos del directorio especificado
+            deshabilitarArchivos(id).flatMap {
+              case Right(_) =>
+                // Deshabilita el directorio
+                val disableResult = sql"UPDATE directorios SET habilitado = false WHERE id = $id"
+                  .update()
+
+                if (disableResult > 0) {
+                  // Directorio y su contenido deshabilitados correctamente
+                  Right("Directorio y su contenido deshabilitados correctamente")
+                } else {
+                  // No se encontró el directorio o no se pudo deshabilitar
+                  Left("No se pudo deshabilitar el directorio y su contenido")
+                }
+              case Left(error) => Future(Left(error))
+            }
+          case Left(error) => Future(Left(error))
+        }
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}")
+          Left("Error interno del servidor")
+      }
+    }
+  }
+  */
 
 }

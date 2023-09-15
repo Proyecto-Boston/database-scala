@@ -17,7 +17,7 @@ class UserController {
       try {
         val usuarioOption = sql"SELECT * FROM usuarios WHERE id = $id"
           .map { rs =>
-            UserModel(rs.int("id"), rs.string("nombre"), rs.string("apellido"))
+            UserModel(rs.int("id"), rs.string("nombre"), rs.string("apellido"), rs.boolean("habilitado"))
           }.single().map { usuario =>
             // Respuesta exitosa con estado 200 y JSON de usuario
             Right(usuario)
@@ -38,7 +38,7 @@ class UserController {
   def registrarUsuario(nombre: String, apellido: String): Future[Either[String, UserModel]] = {
     Future {
       try {
-        val result: Int = sql"INSERT INTO usuarios (nombre, apellido) VALUES ($nombre, $apellido)"
+        val result: Int = sql"INSERT INTO usuarios (nombre, apellido, habilitado) VALUES ($nombre, $apellido, true)"
           .update()
 
         if (result > 0) {
@@ -46,7 +46,7 @@ class UserController {
           val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
           // Crea una instancia de UserModel con el ID real
-          val usuario = UserModel(generatedId.toInt, nombre, apellido)
+          val usuario = UserModel(generatedId.toInt, nombre, apellido, true)
           Right(usuario)
         } else {
           Left("No se pudo insertar el usuario")
@@ -59,26 +59,28 @@ class UserController {
     }
   }
 
-  def EliminarUsuario(id: Int): Future[Either[String, UserModel]] = {
-    Future {
+  def eliminarUsuario(id: Int): Future[Either[String, UserModel]] = {
+  buscarUsuario(id).flatMap {
+    case Right(usuario) =>
+      // Actualiza el usuario para deshabilitarlo
       try {
-        val usuarioOption = sql"SELECT * FROM usuarios WHERE id = $id"
-          .map { rs =>
-            UserModel(rs.int("id"), rs.string("nombre"), rs.string("apellido"))
-          }.single().map { usuario =>
-            // Respuesta exitosa con estado 200 y JSON de usuario
-            Right(usuario)
-          }
+        val updateResult = sql"UPDATE usuarios SET habilitado = false WHERE id = $id".update()
 
-        usuarioOption.getOrElse {
-          // Usuario no encontrado con código 404
-          Left("Usuario no encontrado")
+        if (updateResult > 0) {
+          // Usuario deshabilitado con éxito
+          Future.successful(Right(usuario.copy(habilitado = false)))
+        } else {
+          // No se pudo deshabilitar el usuario
+          Future.successful(Left("No se pudo deshabilitar el usuario"))
         }
       } catch {
         case e: Exception =>
-          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
-          Left("Error interno del servidor")
+          println(s"Error interno del servidor: ${e.getMessage}")
+          Future.successful(Left("Error interno del servidor"))
       }
-    }
+
+    case Left(error) => Future.successful(Left(error))
   }
+}
+
 }
