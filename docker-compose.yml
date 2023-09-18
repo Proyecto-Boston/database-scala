@@ -1,24 +1,49 @@
-version: '3'
+version: '3.1'
 
 services:
-  mariadb-master:
-    image: mariadb:latest
+  # Configuración del maestro MariaDB
+  db-master:
+    image: mariadb
+    command: --init-file /docker-entrypoint-initdb.d/init.sql
     environment:
-      MYSQL_ROOT_PASSWORD: mysecretpassword
-      MYSQL_USER: replication_user
-      MYSQL_PASSWORD: replication_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
-      - ./docker-master/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db-master-data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
 
-  mariadb-slave:
-    image: mariadb:latest
+  # Configuración del esclavo MariaDB
+  db-slave:
+    image: mariadb
+    command: --init-file /docker-entrypoint-initdb.d/init.sql
     environment:
-      MYSQL_ROOT_PASSWORD: mysecretpassword
-      MYSQL_USER: replication_user
-      MYSQL_PASSWORD: replication_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - db-master
     ports:
       - "3307:3306"
     volumes:
-      - ./docker-slave/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db-slave-data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+
+  # Configuración de la aplicación Scala
+  myproject:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db-master
+      - db-slave
+
+volumes:
+  db-master-data:
+  db-slave-data:

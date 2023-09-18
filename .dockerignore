@@ -1,4 +1,16 @@
-# Ignorar archivos y directorios generados por Docker
+# Ignorar los archivos de compilación de Scala
 target/
-docker-master/init.sql
-docker-slave/init.sql
+database-scala/target/
+database-scala/project/
+
+# Ignorar los archivos de configuración del IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Ignorar los archivos de registro
+*.log
+
+# Ignorar los archivos del sistema
+.DS_Store
