@@ -4,7 +4,6 @@ import java.sql.Connection
 import java.sql.DriverManager
 import com.typesafe.config.ConfigFactory
 
-
 import scalikejdbc.{ConnectionPool}
 
 object DatabaseConfig {
@@ -22,11 +21,9 @@ object DatabaseConfig {
       ConnectionPool.singleton(dbMasterUrl, dbUser, dbPassword)
       true
     } catch {
-            case _: Exception => false
+      case _: Exception => false
 
-
-    } 
     }
-  
+  }
 
 }

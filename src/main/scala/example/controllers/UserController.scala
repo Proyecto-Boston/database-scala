@@ -8,7 +8,6 @@ import io.circe.syntax._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 class UserController {
   implicit val session: DBSession = AutoSession
 
@@ -18,7 +17,9 @@ class UserController {
         val usuarioOption = sql"SELECT * FROM usuarios WHERE id = $id"
           .map { rs =>
             UserModel(rs.int("id"), rs.string("nombre"), rs.string("apellido"), rs.boolean("habilitado"))
-          }.single().map { usuario =>
+          }
+          .single()
+          .map { usuario =>
             // Respuesta exitosa con estado 200 y JSON de usuario
             Right(usuario)
           }
@@ -60,27 +61,27 @@ class UserController {
   }
 
   def eliminarUsuario(id: Int): Future[Either[String, UserModel]] = {
-  buscarUsuario(id).flatMap {
-    case Right(usuario) =>
-      // Actualiza el usuario para deshabilitarlo
-      try {
-        val updateResult = sql"UPDATE usuarios SET habilitado = false WHERE id = $id".update()
+    buscarUsuario(id).flatMap {
+      case Right(usuario) =>
+        // Actualiza el usuario para deshabilitarlo
+        try {
+          val updateResult = sql"UPDATE usuarios SET habilitado = false WHERE id = $id".update()
 
-        if (updateResult > 0) {
-          // Usuario deshabilitado con éxito
-          Future.successful(Right(usuario.copy(habilitado = false)))
-        } else {
-          // No se pudo deshabilitar el usuario
-          Future.successful(Left("No se pudo deshabilitar el usuario"))
+          if (updateResult > 0) {
+            // Usuario deshabilitado con éxito
+            Future.successful(Right(usuario.copy(habilitado = false)))
+          } else {
+            // No se pudo deshabilitar el usuario
+            Future.successful(Left("No se pudo deshabilitar el usuario"))
+          }
+        } catch {
+          case e: Exception =>
+            println(s"Error interno del servidor: ${e.getMessage}")
+            Future.successful(Left("Error interno del servidor"))
         }
-      } catch {
-        case e: Exception =>
-          println(s"Error interno del servidor: ${e.getMessage}")
-          Future.successful(Left("Error interno del servidor"))
-      }
 
-    case Left(error) => Future.successful(Left(error))
+      case Left(error) => Future.successful(Left(error))
+    }
   }
-}
 
 }

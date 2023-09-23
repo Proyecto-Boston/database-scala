@@ -17,33 +17,31 @@ class UserRoute(userController: UserController) {
       path(IntNumber) { id =>
         val result: Future[Either[String, UserModel]] = userController.buscarUsuario(id)
         onSuccess(result) {
-          case Right(user) => complete(user)
+          case Right(user)        => complete(user)
           case Left(errorMessage) => complete(HttpResponse(StatusCodes.NotFound, entity = errorMessage))
         }
       }
     } ~
-    path("register") {
-      post {
-        entity(as[UserCreateModel]) { user =>
-          val result: Future[Either[String, UserModel]] = userController.registrarUsuario(user.nombre, user.apellido)
+      path("register") {
+        post {
+          entity(as[UserCreateModel]) { user =>
+            val result: Future[Either[String, UserModel]] = userController.registrarUsuario(user.nombre, user.apellido)
+            onSuccess(result) {
+              case Right(newUser)     => complete(StatusCodes.Created, newUser)
+              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+            }
+          }
+        }
+      } ~
+      path("delete" / IntNumber) { id =>
+        put {
+          val result: Future[Either[String, UserModel]] = userController.eliminarUsuario(id)
           onSuccess(result) {
-            case Right(newUser) => complete(StatusCodes.Created, newUser)
+            case Right(deletedUser) => complete(StatusCodes.OK, deletedUser)
             case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
           }
         }
-      } 
-    } ~
-    path("delete" / IntNumber) { id =>
-      put {
-        val result: Future[Either[String, UserModel]] = userController.eliminarUsuario(id)
-        onSuccess(result) {
-          case Right(deletedUser) => complete(StatusCodes.OK, deletedUser)
-          case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
-        }
       }
-    }
-
-
 
   }
 }

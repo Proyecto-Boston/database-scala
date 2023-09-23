@@ -22,7 +22,7 @@ object Main extends App {
 
   val userController = new UserController
   val userRoute = new UserRoute(userController)
-  
+
   val fileController = new FileController
   val fileRoute = new FileRoute(fileController)
 
@@ -30,12 +30,13 @@ object Main extends App {
   val directoryRoute = new DirectoryRoute(directoryController)
 
   val routes: Route = userRoute.route ~ fileRoute.route ~ directoryRoute.route
-  
+
   val bindingFuture = Http().bindAndHandle(routes, "localhost", 8080)
   println(s"Server online at http://localhost:8080/")
 
   // Mantén el programa en ejecución
   scala.io.StdIn.readLine()
-  bindingFuture.flatMap(_.unbind())
+  bindingFuture
+    .flatMap(_.unbind())
     .onComplete(_ => system.terminate())
 }

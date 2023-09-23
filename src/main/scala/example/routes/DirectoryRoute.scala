@@ -10,7 +10,6 @@ import models.{DirectoryModel, DirectoryCreateModel}
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 
-
 class DirectoryRoute(directoryController: DirectoryController) {
 
   val route: Route = pathPrefix("directory") {
@@ -18,21 +17,46 @@ class DirectoryRoute(directoryController: DirectoryController) {
       path(IntNumber) { id =>
         val result: Future[Either[String, DirectoryModel]] = directoryController.buscarDirectorio(id)
         onSuccess(result) {
-          case Right(directory) => complete(directory)
+          case Right(directory)   => complete(directory)
           case Left(errorMessage) => complete(HttpResponse(StatusCodes.NotFound, entity = errorMessage))
         }
       }
     } ~
-    path("saveDirectory") {
-      post {
-        entity(as[DirectoryCreateModel]) { directory =>
-          val result: Future[Either[String, DirectoryModel]] = directoryController.guardarDirectorio(directory.nombre, directory.ruta, directory.usuario_id)
-          onSuccess(result) {
-            case Right(newDirectory) => complete(StatusCodes.Created, newDirectory)
-            case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+      path("saveDirectories") {
+        post {
+          entity(as[List[DirectoryCreateModel]]) { directories =>
+            val results: Future[List[Either[String, DirectoryModel]]] = directoryController.guardarDirectorios(
+              directories.map(directory => (directory.nombre, directory.ruta, directory.usuario_id))
+            )
+            onSuccess(results) { list =>
+              val errors = list.collect { case Left(errorMessage) => errorMessage }
+              if (errors.isEmpty) {
+                val newDirectories = list.collect { case Right(directory) => directory }
+                complete(StatusCodes.Created, newDirectories)
+              } else {
+                complete(HttpResponse(StatusCodes.InternalServerError, entity = errors.mkString(", ")))
+              }
+            }
+          }
+        }
+      } ~
+      path("saveSubDirectories") {
+        post {
+          entity(as[List[DirectoryCreateModel]]) { subDirectories =>
+            val results: Future[List[Either[String, DirectoryModel]]] = directoryController.guardarSubDirectorios(
+              subDirectories.map(subDirectory => (subDirectory.nombre, subDirectory.ruta, subDirectory.usuario_id))
+            )
+            onSuccess(results) { list =>
+              val errors = list.collect { case Left(errorMessage) => errorMessage }
+              if (errors.isEmpty) {
+                val newSubDirectories = list.collect { case Right(subDirectory) => subDirectory }
+                complete(StatusCodes.Created, newSubDirectories)
+              } else {
+                complete(HttpResponse(StatusCodes.InternalServerError, entity = errors.mkString(", ")))
+              }
+            }
           }
         }
       }
-    }
   }
 }

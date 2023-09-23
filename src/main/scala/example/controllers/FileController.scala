@@ -11,7 +11,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-
 class FileController {
   implicit val session: DBSession = AutoSession
 
@@ -20,9 +19,17 @@ class FileController {
       try {
         val archivoOption = sql"SELECT * FROM archivos WHERE id = $id"
           .map { rs =>
-
-            FileModel(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.double("tamano"), rs.int("usuario_id"), rs.boolean("habilitado"))
-          }.single().map { file =>
+            FileModel(
+              rs.int("id"),
+              rs.string("nombre"),
+              rs.string("ruta"),
+              rs.double("tamano"),
+              rs.int("usuario_id"),
+              rs.boolean("habilitado")
+            )
+          }
+          .single()
+          .map { file =>
             // Respuesta exitosa con estado 200 y JSON de usuario
             Right(file)
           }
@@ -31,36 +38,42 @@ class FileController {
           // Usuario no encontrado con código 404
           Left("Archivo no encontrado")
         }
-     } catch {
-  case e: Exception =>
-    println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
-    Left("Error interno del servidor")
-}
-    }
-  }
-
-  def guardarArchivo(nombre: String, ruta: String, tamano: Double, usuario_id: Int): Future[Either[String, FileModel]] = {
-  Future {
-    try {
-      val result = sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, habilitado) VALUES ($nombre, $ruta, $tamano, $usuario_id, true)"
-        .update()
-
-      if (result > 0) {
-        // Recupera el ID generado por la base de datos
-        val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
-
-        // Crea una instancia de DirectoryModel con el ID real
-        val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true)
-        Right(archivo)
-      } else {
-        Left("No se pudo agregar el archivo")
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
       }
-    } catch {
-      case e: Exception =>
-        println(s"Error interno del servidor: ${e.getMessage}")
-        Left("Error interno del servidor")
     }
   }
+
+  def guardarArchivo(
+      nombre: String,
+      ruta: String,
+      tamano: Double,
+      usuario_id: Int
+  ): Future[Either[String, FileModel]] = {
+    Future {
+      try {
+        val result =
+          sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, habilitado) VALUES ($nombre, $ruta, $tamano, $usuario_id, true)"
+            .update()
+
+        if (result > 0) {
+          // Recupera el ID generado por la base de datos
+          val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
+
+          // Crea una instancia de DirectoryModel con el ID real
+          val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true)
+          Right(archivo)
+        } else {
+          Left("No se pudo agregar el archivo")
+        }
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}")
+          Left("Error interno del servidor")
+      }
+    }
   }
   def moverArchivo(id: Int, nuevaRuta: String): Future[Either[String, FileModel]] = {
     Future {
@@ -130,13 +143,14 @@ class FileController {
   }
 
   def reporteEspacio(usuario_id: Int): Future[Either[String, FileReportModel]] = {
-  Future {
+    Future {
       try {
         val resultado = sql"SELECT usuario_id, SUM(tamano) AS espacio FROM archivos WHERE usuario_id = $usuario_id"
           .map { rs =>
-
             FileReportModel(rs.int("usuario_id"), rs.double("espacio"))
-          }.single().map { file =>
+          }
+          .single()
+          .map { file =>
             // Respuesta exitosa con estado 200 y JSON de usuario
             Right(file)
           }
@@ -145,29 +159,37 @@ class FileController {
           // Usuario no encontrado con código 404
           Left("Error en el reporte")
         }
-     } catch {
-  case e: Exception =>
-    println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
-    Left("Error interno del servidor")
-}
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
+      }
     }
   }
   def obtenerArchivosPorUsuario(usuario_id: Int): Future[Either[String, List[FileModel]]] = {
-  Future {
-    try {
-      val archivos = sql"SELECT * FROM archivos WHERE habilitado = true AND usuario_id = $usuario_id".map { rs =>
-        FileModel(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.double("tamano"), rs.int("usuario_id"), rs.boolean("habilitado"))
-      }.list()
+    Future {
+      try {
+        val archivos = sql"SELECT * FROM archivos WHERE habilitado = true AND usuario_id = $usuario_id"
+          .map { rs =>
+            FileModel(
+              rs.int("id"),
+              rs.string("nombre"),
+              rs.string("ruta"),
+              rs.double("tamano"),
+              rs.int("usuario_id"),
+              rs.boolean("habilitado")
+            )
+          }
+          .list()
 
-      // Respuesta exitosa con estado 200 y lista de archivos
-      Right(archivos)
-    } catch {
-      case e: Exception =>
-        println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
-        Left("Error interno del servidor")
+        // Respuesta exitosa con estado 200 y lista de archivos
+        Right(archivos)
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
+      }
     }
   }
-}
-
 
 }

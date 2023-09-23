@@ -8,7 +8,6 @@ import io.circe.syntax._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 class DirectoryController {
   implicit val session: DBSession = AutoSession
 
@@ -18,7 +17,9 @@ class DirectoryController {
         val directorioOption = sql"SELECT * FROM directorios WHERE id = $id"
           .map { rs =>
             DirectoryModel(rs.int("id"), rs.string("nombre"), rs.string("ruta"), rs.int("usuario_id"))
-          }.single().map { directorio =>
+          }
+          .single()
+          .map { directorio =>
             // Respuesta exitosa con estado 200 y JSON de usuario
             Right(directorio)
           }
@@ -27,63 +28,75 @@ class DirectoryController {
           // Usuario no encontrado con código 404
           Left("Directorio no encontrado")
         }
-     } catch {
-  case e: Exception =>
-    println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
-    Left("Error interno del servidor")
-}
-    }
-  }
-
-  def guardarDirectorio(nombre: String, ruta: String, usuario_id: Int): Future[Either[String, DirectoryModel]] = {
-  Future {
-    try {
-      val result = sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $ruta, $usuario_id)"
-        .update()
-
-      if (result > 0) {
-        // Recupera el ID generado por la base de datos
-        val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
-
-        // Crea una instancia de DirectoryModel con el ID real
-        val directorio = DirectoryModel(generatedId.toInt, nombre, ruta, usuario_id)
-        Right(directorio)
-      } else {
-        Left("No se pudo agregar el directorio")
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
       }
-    } catch {
-      case e: Exception =>
-        println(s"Error interno del servidor: ${e.getMessage}")
-        Left("Error interno del servidor")
     }
   }
-  }
 
-  def guardarSubDirectorio(nombre: String, rutaPadre: String, usuario_id: Int): Future[Either[String, DirectoryModel]] = {
-  Future {
-    try {
-      val nuevaRuta = s"$rutaPadre/$nombre"
+  def guardarDirectorios(directorios: List[(String, String, Int)]): Future[List[Either[String, DirectoryModel]]] = {
+    Future.sequence {
+      directorios.map { case (nombre, ruta, usuario_id) =>
+        Future {
+          try {
+            val result = sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $ruta, $usuario_id)"
+              .update()
 
-      val result = sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $nuevaRuta, $usuario_id)"
-        .update()
+            if (result > 0) {
+              // Recupera el ID generado por la base de datos
+              val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
-      if (result > 0) {
-        // Recupera el ID generado por la base de datos
-        val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
-
-        // Crea una instancia de DirectoryModel con el ID real
-        val directorio = DirectoryModel(generatedId.toInt, nombre, nuevaRuta, usuario_id)
-        Right(directorio)
-      } else {
-        Left("No se pudo agregar el sub directorio")
+              // Crea una instancia de DirectoryModel con el ID real
+              val directorio = DirectoryModel(generatedId.toInt, nombre, ruta, usuario_id)
+              Right(directorio)
+            } else {
+              Left("No se pudo agregar el directorio")
+            }
+          } catch {
+            case e: Exception =>
+              println(s"Error interno del servidor: ${e.getMessage}")
+              Left("Error interno del servidor")
+          }
+        }
       }
-    } catch {
-      case e: Exception =>
-        println(s"Error interno del servidor: ${e.getMessage}")
-        Left("Error interno del servidor")
     }
   }
+
+  def guardarSubDirectorios(
+      subdirectorios: List[(String, String, Int)]
+  ): Future[List[Either[String, DirectoryModel]]] = {
+    Future.sequence {
+      subdirectorios.map { case (nombre, rutaPadre, usuario_id) =>
+        Future {
+          try {
+            val nuevaRuta = s"$rutaPadre/$nombre"
+
+            val result =
+              sql"INSERT INTO directorios (nombre, ruta, usuario_id) VALUES ($nombre, $nuevaRuta, $usuario_id)"
+                .update()
+
+            if (result > 0) {
+              // Recupera el ID generado por la base de datos
+              val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
+
+              // Crea una instancia de DirectoryModel con el ID real
+              val directorio = DirectoryModel(generatedId.toInt, nombre, nuevaRuta, usuario_id)
+              Right(directorio)
+            } else {
+              Left("No se pudo agregar el sub directorio")
+            }
+          } catch {
+            case e: Exception =>
+              println(s"Error interno del servidor: ${e.getMessage}")
+              Left("Error interno del servidor")
+          }
+        }
+      }
+    }
   }
+
   def deshabilitarSubdirectorios(idDirectorio: Int): Future[Either[String, String]] = {
     Future {
       try {
@@ -159,6 +172,6 @@ class DirectoryController {
       }
     }
   }
-  */
+   */
 
 }
