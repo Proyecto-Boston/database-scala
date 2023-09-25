@@ -23,12 +23,17 @@ class FileRoute(fileController: FileController) {
     } ~
       path("save") {
         post {
-          entity(as[FileCreateModel]) { file =>
-            val result: Future[Either[String, FileModel]] =
-              fileController.guardarArchivo(file.nombre, file.ruta, file.tamano, file.usuario_id)
-            onSuccess(result) {
-              case Right(newFile)     => complete(StatusCodes.Created, newFile)
-              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+          entity(as[List[FileCreateModel]]) { files =>
+            val result: Future[List[Either[String, FileModel]]] =
+              fileController.guardarArchivos(files.map(file => (file.nombre, file.ruta, file.tamano, file.usuario_id)))
+            onSuccess(result) { list =>
+              val errors = list.collect { case Left(errorMessage) => errorMessage }
+              if (errors.isEmpty) {
+                val newFiles = list.collect { case Right(file) => file }
+                complete(StatusCodes.Created, newFiles)
+              } else {
+                complete(HttpResponse(StatusCodes.InternalServerError, entity = errors.mkString(", ")))
+              }
             }
           }
         }

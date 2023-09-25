@@ -60,28 +60,30 @@ class UserController {
     }
   }
 
-  def eliminarUsuario(id: Int): Future[Either[String, UserModel]] = {
-    buscarUsuario(id).flatMap {
-      case Right(usuario) =>
-        // Actualiza el usuario para deshabilitarlo
-        try {
-          val updateResult = sql"UPDATE usuarios SET habilitado = false WHERE id = $id".update()
+  def eliminarUsuarios(ids: List[Int]): Future[List[Either[String, UserModel]]] = {
+    Future.sequence(ids.map { id =>
+      buscarUsuario(id).flatMap {
+        case Right(usuario) =>
+          // Actualiza el usuario para deshabilitarlo
+          try {
+            val updateResult = sql"UPDATE usuarios SET habilitado = false WHERE id = $id".update()
 
-          if (updateResult > 0) {
-            // Usuario deshabilitado con éxito
-            Future.successful(Right(usuario.copy(habilitado = false)))
-          } else {
-            // No se pudo deshabilitar el usuario
-            Future.successful(Left("No se pudo deshabilitar el usuario"))
+            if (updateResult > 0) {
+              // Usuario deshabilitado con éxito
+              Future.successful(Right(usuario.copy(habilitado = false)))
+            } else {
+              // No se pudo deshabilitar el usuario
+              Future.successful(Left("No se pudo deshabilitar el usuario"))
+            }
+          } catch {
+            case e: Exception =>
+              println(s"Error interno del servidor: ${e.getMessage}")
+              Future.successful(Left("Error interno del servidor"))
           }
-        } catch {
-          case e: Exception =>
-            println(s"Error interno del servidor: ${e.getMessage}")
-            Future.successful(Left("Error interno del servidor"))
-        }
 
-      case Left(error) => Future.successful(Left(error))
-    }
+        case Left(error) => Future.successful(Left(error))
+      }
+    })
   }
 
 }

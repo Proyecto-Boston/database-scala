@@ -46,35 +46,35 @@ class FileController {
     }
   }
 
-  def guardarArchivo(
-      nombre: String,
-      ruta: String,
-      tamano: Double,
-      usuario_id: Int
-  ): Future[Either[String, FileModel]] = {
-    Future {
-      try {
-        val result =
-          sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, habilitado) VALUES ($nombre, $ruta, $tamano, $usuario_id, true)"
-            .update()
+  def guardarArchivos(archivos: List[(String, String, Double, Int)]): Future[List[Either[String, FileModel]]] = {
+    Future.sequence {
+      archivos.map { case (nombre, ruta, tamano, usuario_id) =>
+        Future {
+          try {
+            val result =
+              sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, habilitado) VALUES ($nombre, $ruta, $tamano, $usuario_id, true)"
+                .update()
 
-        if (result > 0) {
-          // Recupera el ID generado por la base de datos
-          val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
+            if (result > 0) {
+              // Recupera el ID generado por la base de datos
+              val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
-          // Crea una instancia de DirectoryModel con el ID real
-          val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true)
-          Right(archivo)
-        } else {
-          Left("No se pudo agregar el archivo")
+              // Crea una instancia de DirectoryModel con el ID real
+              val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true)
+              Right(archivo)
+            } else {
+              Left("No se pudo agregar el archivo")
+            }
+          } catch {
+            case e: Exception =>
+              println(s"Error interno del servidor: ${e.getMessage}")
+              Left("Error interno del servidor")
+          }
         }
-      } catch {
-        case e: Exception =>
-          println(s"Error interno del servidor: ${e.getMessage}")
-          Left("Error interno del servidor")
       }
     }
   }
+
   def moverArchivo(id: Int, nuevaRuta: String): Future[Either[String, FileModel]] = {
     Future {
       try {

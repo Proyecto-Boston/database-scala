@@ -33,15 +33,23 @@ class UserRoute(userController: UserController) {
           }
         }
       } ~
-      path("delete" / IntNumber) { id =>
+      path("delete") {
         put {
-          val result: Future[Either[String, UserModel]] = userController.eliminarUsuario(id)
-          onSuccess(result) {
-            case Right(deletedUser) => complete(StatusCodes.OK, deletedUser)
-            case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+          entity(as[List[Int]]) { ids =>
+            val result: Future[List[Either[String, UserModel]]] = userController.eliminarUsuarios(ids)
+            onSuccess(result) { resultList =>
+              val errors = resultList.collect { case Left(errorMessage) => errorMessage }
+              if (errors.isEmpty) {
+                val users = resultList.collect { case Right(user) => user }
+                complete(StatusCodes.OK, users)
+              } else {
+                complete(HttpResponse(StatusCodes.InternalServerError, entity = errors.mkString(", ")))
+
+              }
+            }
           }
         }
-      }
 
+      }
   }
 }
