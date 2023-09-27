@@ -10,7 +10,6 @@ object DatabaseConfig {
 
   val config = ConfigFactory.load()
   val dbMasterUrl = config.getString("db.urlMaestro")
-  val dbSlaveUrl = config.getString("db.urlEsclavo")
   val dbUser = config.getString("db.user")
   val dbPassword = config.getString("db.password")
 

@@ -31,12 +31,10 @@ object Main extends App {
 
   val routes: Route = userRoute.route ~ fileRoute.route ~ directoryRoute.route
 
-  val bindingFuture = Http().bindAndHandle(routes, "localhost", 8080)
-  println(s"Server online at http://localhost:8080/")
+  val bindingFuture = Http().bindAndHandle(routes, "0.0.0.0", 8080)
+  println(s"Server online at http://207.248.81.126:8080/")
 
-  // Mantén el programa en ejecución
-  scala.io.StdIn.readLine()
-  bindingFuture
-    .flatMap(_.unbind())
-    .onComplete(_ => system.terminate())
+  while (true) {
+    Thread.sleep(10000)
+  }
 }

@@ -4,7 +4,6 @@
 .bsp/
 .scala-build/
 
-src/main/resources/
 # Ignorar archivos generados por SBT
 target/
 
@@ -29,4 +28,3 @@ target/
 # Ignorar archivos de construcción y configuración personal
 build.sbt.local
 *.sbt.local
-.scalafmt.conf
