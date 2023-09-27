@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
     
     libraryDependencies ++= Seq(
       scalaTest % Test, "org.scalikejdbc" %% "scalikejdbc" % "4.0.+" exclude("org.scala-lang.modules", "scala-parser-combinators_2.12"),
-      "com.h2database" % "h2" % "1.4.+",
+      "com.h2database" % "h2" % "2.2.220",
       "ch.qos.logback" % "logback-classic" % "1.2.+",
       "org.mariadb.jdbc" % "mariadb-java-client" % "2.7.4",
       "com.typesafe" % "config" % "1.4.1",
