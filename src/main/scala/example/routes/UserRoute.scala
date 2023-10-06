@@ -25,7 +25,8 @@ class UserRoute(userController: UserController) {
       path("register") {
         post {
           entity(as[UserCreateModel]) { user =>
-            val result: Future[Either[String, UserModel]] = userController.registrarUsuario(user.nombre, user.apellido)
+            val result: Future[Either[String, UserModel]] =
+              userController.registrarUsuario(user.auth_id, user.nombre, user.apellido)
             onSuccess(result) {
               case Right(newUser)     => complete(StatusCodes.Created, newUser)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))

@@ -12,7 +12,7 @@ RUN sbt update
 RUN sbt compile
 
 # Exponer el puerto por el que se comunicará la aplicación
-EXPOSE 8080
+EXPOSE 80
 
 # Definir el comando para ejecutar la aplicación
 CMD ["sbt", "run"]

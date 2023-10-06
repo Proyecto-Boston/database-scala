@@ -3,6 +3,7 @@
 .metals/
 .bsp/
 .scala-build/
+.env
 
 # Ignorar archivos generados por SBT
 target/
@@ -28,3 +29,4 @@ target/
 # Ignorar archivos de construcción y configuración personal
 build.sbt.local
 *.sbt.local
+src/main/resources/application.conf

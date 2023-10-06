@@ -16,7 +16,7 @@ class UserController {
       try {
         val usuarioOption = sql"SELECT * FROM usuarios WHERE id = $id"
           .map { rs =>
-            UserModel(rs.int("id"), rs.string("nombre"), rs.string("apellido"), rs.boolean("habilitado"))
+            UserModel(rs.int("auth_id"), rs.string("nombre"), rs.string("apellido"), rs.boolean("habilitado"))
           }
           .single()
           .map { usuario =>
@@ -36,10 +36,10 @@ class UserController {
     }
   }
 
-  def registrarUsuario(nombre: String, apellido: String): Future[Either[String, UserModel]] = {
+  def registrarUsuario(auth_id: Int, nombre: String, apellido: String): Future[Either[String, UserModel]] = {
     Future {
       try {
-        val result: Int = sql"INSERT INTO usuarios (nombre, apellido, habilitado) VALUES ($nombre, $apellido, true)"
+        val result: Int = sql"INSERT INTO usuarios (nombre, apellido, auth_id) VALUES ($nombre, $apellido, $auth_id)"
           .update()
 
         if (result > 0) {
@@ -47,7 +47,7 @@ class UserController {
           val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
           // Crea una instancia de UserModel con el ID real
-          val usuario = UserModel(generatedId.toInt, nombre, apellido, true)
+          val usuario = UserModel(auth_id, nombre, apellido, true)
           Right(usuario)
         } else {
           Left("No se pudo insertar el usuario")

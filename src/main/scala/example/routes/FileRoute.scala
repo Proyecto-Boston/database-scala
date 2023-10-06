@@ -25,7 +25,11 @@ class FileRoute(fileController: FileController) {
         post {
           entity(as[List[FileCreateModel]]) { files =>
             val result: Future[List[Either[String, FileModel]]] =
-              fileController.guardarArchivos(files.map(file => (file.nombre, file.ruta, file.tamano, file.usuario_id)))
+              fileController.guardarArchivos(
+                files.map(file =>
+                  (file.nombre, file.ruta, file.tamano, file.usuario_id, file.nodo_id, file.directorio_id)
+                )
+              )
             onSuccess(result) { list =>
               val errors = list.collect { case Left(errorMessage) => errorMessage }
               if (errors.isEmpty) {

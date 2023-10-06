@@ -25,7 +25,9 @@ class FileController {
               rs.string("ruta"),
               rs.double("tamano"),
               rs.int("usuario_id"),
-              rs.boolean("habilitado")
+              rs.boolean("habilitado"),
+              rs.int("nodo_id"),
+              rs.int("directorio_id")
             )
           }
           .single()
@@ -46,13 +48,15 @@ class FileController {
     }
   }
 
-  def guardarArchivos(archivos: List[(String, String, Double, Int)]): Future[List[Either[String, FileModel]]] = {
+  def guardarArchivos(
+      archivos: List[(String, String, Double, Int, Int, Int)]
+  ): Future[List[Either[String, FileModel]]] = {
     Future.sequence {
-      archivos.map { case (nombre, ruta, tamano, usuario_id) =>
+      archivos.map { case (nombre, ruta, tamano, usuario_id, nodo_id, directorio_id) =>
         Future {
           try {
             val result =
-              sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, habilitado) VALUES ($nombre, $ruta, $tamano, $usuario_id, true)"
+              sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, nodo_id, directorio_id) VALUES ($nombre, $ruta, $tamano, $usuario_id, $nodo_id,$directorio_id)"
                 .update()
 
             if (result > 0) {
@@ -60,7 +64,7 @@ class FileController {
               val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
               // Crea una instancia de DirectoryModel con el ID real
-              val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true)
+              val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true, nodo_id, directorio_id)
               Right(archivo)
             } else {
               Left("No se pudo agregar el archivo")
@@ -177,7 +181,9 @@ class FileController {
               rs.string("ruta"),
               rs.double("tamano"),
               rs.int("usuario_id"),
-              rs.boolean("habilitado")
+              rs.boolean("habilitado"),
+              rs.int("nodo_id"),
+              rs.int("directorio_id")
             )
           }
           .list()
