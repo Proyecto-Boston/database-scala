@@ -2,7 +2,7 @@
 package controllers
 
 import scalikejdbc._
-import models.{SharedModel, FileReportModel}
+import models.{SharedModel}
 
 import io.circe._
 import io.circe.generic.auto._
@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class FileController {
+class SharedController {
   implicit val session: DBSession = AutoSession
 
   def guardarCompartido(
