@@ -23,7 +23,7 @@ class SharedController {
         Future {
           try {
             val result =
-              sql"INSERT INTO archivos (usuario_id, archivo_id) VALUES ($usuario_id, $archivo_id)"
+              sql"INSERT INTO compartidos (usuario_id, archivo_id) VALUES ($usuario_id, $archivo_id)"
                 .update()
 
             if (result > 0) {
@@ -51,9 +51,26 @@ class SharedController {
     Future {
       try {
         // Realizar la actualización para cambiar el campo "habilitado" a false
-        val resultado = sql"UPDATE archivos SET habilitado = false WHERE id = $id".update()
+        val resultado = sql"DELETE from compartido WHERE id = $id".update()
 
         if (resultado > 0) {
+
+          val resultadoFuture: Future[Either[String, FileModel]] = obtenerCompartidosPorUsuario(id)
+
+          val resultado: Either[String, FileModel] = Await.result(resultadoFuture, 5.seconds)
+
+          resultado match {
+            case Right(fileModel) =>
+              // Aquí puedes trabajar con el resultado Right (éxito)
+              // Por ejemplo, imprimir el archivo
+              println(s"Archivo encontrado: $fileModel")
+              Right(fileModel)
+            case Left(errorMessage) =>
+              // Aquí puedes manejar el caso Left (error)
+              // Por ejemplo, imprimir el mensaje de error
+              println(s"Error: $errorMessage")
+              Left(errorMessage)
+          }
           
 
         } else {
@@ -71,7 +88,7 @@ class SharedController {
   def obtenerCompartidosPorUsuario(usuario_id: Int): Future[Either[String, List[SharedModel]]] = {
     Future {
       try {
-        val archivos = sql"SELECT * FROM archivos WHERE habilitado = true AND usuario_id = $usuario_id"
+        val archivos = sql"SELECT * FROM compartido WHERE usuario_id = $usuario_id"
           .map { rs =>
             SharedModel(
               rs.int("id"),

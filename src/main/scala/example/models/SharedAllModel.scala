@@ -7,4 +7,10 @@ case class SharedModel(
     archivo_id: Int
 
 
+)case class SharedCreateModel(
+
+    usuario_id_id: Int,
+    archivo_id: Int
+
+
 )
