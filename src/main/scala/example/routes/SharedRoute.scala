@@ -15,7 +15,7 @@ class SharedRoute(SharedController: SharedController) {
   val route: Route = pathPrefix("shared") {
     get {
       path(IntNumber) { id =>
-        val result: Future[Either[String, SharedModel]] = SharedController.obtenerCompartidosPorUsuario(id)
+        val result: Future[Either[String, SharedModel]] = SharedController.obtenerCompartidosPorUsuario(id: Int)
         onSuccess(result) {
           case Right(shared)      => complete(shared)
           case Left(errorMessage) => complete(HttpResponse(StatusCodes.NotFound, entity = errorMessage))
@@ -36,8 +36,8 @@ class SharedRoute(SharedController: SharedController) {
       } ~
       path("delete") {
         put {
-          entity(as[SharedModel]) { id =>
-            val result: Future[Either[String, SharedModel]] = SharedController.eliminarCompartido(id)
+          entity(as[IntNumber]) { id =>
+            val result: Future[Either[String, SharedModel]] = SharedController.eliminarCompartido(id: Int)
             onSuccess(result) {
               case Right(newshared)   => complete(StatusCodes.Created, newshared)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
