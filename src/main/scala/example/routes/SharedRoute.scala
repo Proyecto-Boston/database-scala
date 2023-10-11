@@ -17,7 +17,7 @@ class SharedRoute(SharedController: SharedController) {
       path(IntNumber) { id =>
         val result: Future[Either[String, sharedModel]] = SharedController.buscarUsuario(id)
         onSuccess(result) {
-          case Right(shared)        => complete(shared)
+          case Right(shared)      => complete(shared)
           case Left(errorMessage) => complete(HttpResponse(StatusCodes.NotFound, entity = errorMessage))
         }
       }
@@ -26,9 +26,9 @@ class SharedRoute(SharedController: SharedController) {
         post {
           entity(as[sharedCreateModel]) { shared =>
             val result: Future[Either[String, sharedModel]] =
-              SharedController.guardarCompartido(shared.usuario_id, archivo_id)
+              SharedController.guardarCompartido(shared.usuario_id, shared.archivo_id)
             onSuccess(result) {
-              case Right(newshared)     => complete(StatusCodes.Created, newshared)
+              case Right(newshared)   => complete(StatusCodes.Created, newshared)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
             }
           }
@@ -36,22 +36,16 @@ class SharedRoute(SharedController: SharedController) {
       } ~
       path("delete") {
         put {
-          entity(as[List[Int]]) { ids =>
-            val result: Future[List[Either[String, sharedModel]]] = SharedController.eliminarCompartido(ids)
-            onSuccess(result) { resultList =>
-              val errors = resultList.collect { case Left(errorMessage) => errorMessage }
-              if (errors.isEmpty) {
-                val shareds = resultList.collect { case Right(shared) => shared }
-                complete(StatusCodes.OK, shareds)
-              } else {
-                complete(HttpResponse(StatusCodes.InternalServerError, entity = errors.mkString(", ")))
-
-              }
+          entity(as[sharedCreateModel]) { id =>
+            val result: Future[Either[String, sharedModel]] = SharedController.eliminarCompartido(id)
+            onSuccess(result) {
+              case Right(newshared)   => complete(StatusCodes.Created, newshared)
+              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
             }
           }
         }
 
       }
-      
+
   }
 }

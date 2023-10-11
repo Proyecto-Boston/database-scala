@@ -2,7 +2,7 @@
 package controllers
 
 import scalikejdbc._
-import models.{SharedModel}
+import models.SharedModel
 
 import io.circe._
 import io.circe.generic.auto._
@@ -15,63 +15,41 @@ import scala.concurrent.duration._
 class SharedController {
   implicit val session: DBSession = AutoSession
 
-  def guardarCompartido(
-      archivos: List[( Int, Int, Int)]
-  ): Future[List[Either[String, SharedModel]]] = {
-    Future.sequence {
-      archivos.map { case (usuario_id, archivo_id) =>
-        Future {
-          try {
-            val result =
-              sql"INSERT INTO compartidos (usuario_id, archivo_id) VALUES ($usuario_id, $archivo_id)"
-                .update()
+  def guardarCompartido(usuario_id: Int, archivo_id: Int): Future[Either[String, SharedModel]] = {
 
-            if (result > 0) {
-              // Recupera el ID generado por la base de datos
-              val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
-
-              // Crea una instancia de DirectoryModel con el ID real
-              val comparitdo = SharedModelModel(generatedId.toInt, usuario_id, archivo_id)
-              Right(comparitdo)
-            } else {
-              Left("No se pudo agregar el compartido")
-            }
-          } catch {
-            case e: Exception =>
-              println(s"Error interno del servidor: ${e.getMessage}")
-              Left("Error interno del servidor")
-          }
-        }
-      }
-    }
-  }
-
-
-  def eliminarCompartido(id: Int): Future[Either[String, SharedModel]] = {
     Future {
       try {
-        // Realizar la actualización para cambiar el campo "habilitado" a false
+        val result =
+          sql"INSERT INTO compartidos (usuario_id, archivo_id) VALUES ($usuario_id, $archivo_id)"
+            .update()
+
+        if (result > 0) {
+          // Recupera el ID generado por la base de datos
+          val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
+
+          // Crea una instancia de DirectoryModel con el ID real
+          val comparitdo = SharedModel(generatedId.toInt, usuario_id, archivo_id)
+          Right(comparitdo)
+        } else {
+          Left("No se pudo agregar el compartido")
+        }
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}")
+          Left("Error interno del servidor")
+      }
+    }
+
+  }
+
+  def eliminarCompartido(id: Int): Future[Either[String, String]] = {
+    Future {
+      try {
         val resultado = sql"DELETE from compartido WHERE id = $id".update()
 
         if (resultado > 0) {
 
-          val resultadoFuture: Future[Either[String, FileModel]] = obtenerCompartidosPorUsuario(id)
-
-          val resultado: Either[String, FileModel] = Await.result(resultadoFuture, 5.seconds)
-
-          resultado match {
-            case Right(fileModel) =>
-              // Aquí puedes trabajar con el resultado Right (éxito)
-              // Por ejemplo, imprimir el archivo
-              println(s"Archivo encontrado: $fileModel")
-              Right(fileModel)
-            case Left(errorMessage) =>
-              // Aquí puedes manejar el caso Left (error)
-              // Por ejemplo, imprimir el mensaje de error
-              println(s"Error: $errorMessage")
-              Left(errorMessage)
-          }
-          
+          Right("Se eliminó el archivo correctamente")
 
         } else {
           // La actualización no afectó ninguna fila, devolver un mensaje de error

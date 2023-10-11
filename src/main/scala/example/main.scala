@@ -8,9 +8,9 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.typesafe.config.ConfigFactory
 import scalikejdbc.ConnectionPool
-import controllers.{UserController, FileController, DirectoryController}
-import routes.{UserRoute, FileRoute, DirectoryRoute}
-import models.{UserModel, FileModel, DirectoryModel}
+import controllers.{UserController, FileController, DirectoryController, SharedController}
+import routes.{UserRoute, FileRoute, DirectoryRoute, SharedRoute}
+import models.{UserModel, FileModel, DirectoryModel, SharedModel}
 import example.DatabaseConfig
 
 object Main extends App {
@@ -29,7 +29,10 @@ object Main extends App {
   val directoryController = new DirectoryController
   val directoryRoute = new DirectoryRoute(directoryController)
 
-  val routes: Route = userRoute.route ~ fileRoute.route ~ directoryRoute.route
+  val sharedController = new SharedController
+  val sharedRoute = new SharedRoute(sharedController)
+
+  val routes: Route = userRoute.route ~ fileRoute.route ~ directoryRoute.route ~ sharedRoute.route
 
   val bindingFuture = Http().bindAndHandle(routes, "0.0.0.0", 80)
   println(s"Server online at http://207.248.81.126:80/")
