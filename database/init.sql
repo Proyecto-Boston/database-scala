@@ -118,7 +118,7 @@ SET SQL_MODE=@OLDTMP_SQL_MODE;
 SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
 DELIMITER //
 CREATE TRIGGER `archivos_after_update` AFTER UPDATE ON `archivos` FOR EACH ROW BEGIN
-   INSERT INTO auditoria (tabla, id_tabla, operacion, usuario_id) 
+   INSERT INTO auditoria (tabla, id_tabla, operacion, usuario_id)
    VALUES ('archivos', NEW.id, 'UPDATE', NEW.usuario_id);
 END//
 DELIMITER ;

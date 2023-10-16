@@ -54,11 +54,16 @@ class FileRoute(fileController: FileController) {
         }
       } ~ path("delete") {
         put {
-          entity(as[FileModel]) { file =>
-            val result: Future[Either[String, FileModel]] = fileController.eliminarArchivo(file.id)
-            onSuccess(result) {
-              case Right(deletedFile) => complete(StatusCodes.OK, deletedFile)
-              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+          entity(as[List[Int]]) { ids =>
+            val result: Future[List[Either[String, FileModel]]] = fileController.eliminarArchivo(ids)
+            onSuccess(result) { resultList =>
+              val errors = resultList.collect { case Left(errorMessage) => errorMessage }
+              if (errors.isEmpty) {
+                val files = resultList.collect { case Right(file) => file }
+                complete(StatusCodes.OK, files)
+              } else {
+                complete(HttpResponse(StatusCodes.InternalServerError, entity = errors.mkString(", ")))
+              }
             }
           }
         }

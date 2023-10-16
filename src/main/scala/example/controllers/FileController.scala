@@ -109,34 +109,36 @@ class FileController {
     }
   }
 
-  def eliminarArchivo(id: Int): Future[Either[String, FileModel]] = {
-    Future {
-      try {
-        val resultado = sql"UPDATE archivos SET habilitado = false WHERE id = $id".update()
+  def eliminarArchivo(ids: List[Int]): Future[List[Either[String, FileModel]]] = {
+    Future.sequence(ids.map { id =>
+      Future {
+        try {
+          val resultado = sql"UPDATE archivos SET habilitado = false WHERE id = $id".update()
 
-        if (resultado > 0) {
-          val resultadoFuture: Future[Either[String, FileModel]] = buscarArchivo(id)
+          if (resultado > 0) {
+            val resultadoFuture: Future[Either[String, FileModel]] = buscarArchivo(id)
 
-          val resultado: Either[String, FileModel] = Await.result(resultadoFuture, 5.seconds)
+            val resultado: Either[String, FileModel] = Await.result(resultadoFuture, 5.seconds)
 
-          resultado match {
-            case Right(fileModel) =>
-              println(s"Archivo encontrado: $fileModel")
-              Right(fileModel)
-            case Left(errorMessage) =>
-              println(s"Error: $errorMessage")
-              Left(errorMessage)
+            resultado match {
+              case Right(fileModel) =>
+                println(s"Archivo encontrado: $fileModel")
+                Right(fileModel)
+              case Left(errorMessage) =>
+                println(s"Error: $errorMessage")
+                Left(errorMessage)
+            }
+
+          } else {
+            Left("No se pudo eliminar el archivo, ID no encontrado o ya está deshabilitado")
           }
-
-        } else {
-          Left("No se pudo eliminar el archivo, ID no encontrado o ya está deshabilitado")
+        } catch {
+          case e: Exception =>
+            println(s"Error interno del servidor: ${e.getMessage}")
+            Left("Error interno del servidor")
         }
-      } catch {
-        case e: Exception =>
-          println(s"Error interno del servidor: ${e.getMessage}")
-          Left("Error interno del servidor")
       }
-    }
+    })
   }
 
   def reporteEspacio(usuario_id: Int): Future[Either[String, FileReportModel]] = {
