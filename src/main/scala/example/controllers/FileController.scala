@@ -112,30 +112,23 @@ class FileController {
   def eliminarArchivo(id: Int): Future[Either[String, FileModel]] = {
     Future {
       try {
-        // Realizar la actualización para cambiar el campo "habilitado" a false
         val resultado = sql"UPDATE archivos SET habilitado = false WHERE id = $id".update()
 
         if (resultado > 0) {
-          // La actualización fue exitosa, llamar a buscarArchivo para obtener el archivo actualizado
           val resultadoFuture: Future[Either[String, FileModel]] = buscarArchivo(id)
 
           val resultado: Either[String, FileModel] = Await.result(resultadoFuture, 5.seconds)
 
           resultado match {
             case Right(fileModel) =>
-              // Aquí puedes trabajar con el resultado Right (éxito)
-              // Por ejemplo, imprimir el archivo
               println(s"Archivo encontrado: $fileModel")
               Right(fileModel)
             case Left(errorMessage) =>
-              // Aquí puedes manejar el caso Left (error)
-              // Por ejemplo, imprimir el mensaje de error
               println(s"Error: $errorMessage")
               Left(errorMessage)
           }
 
         } else {
-          // La actualización no afectó ninguna fila, devolver un mensaje de error
           Left("No se pudo eliminar el archivo, ID no encontrado o ya está deshabilitado")
         }
       } catch {
