@@ -9,15 +9,17 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import models.{SharedModel, SharedCreateModel}
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
+import scala.concurrent.Future
 
-class SharedRoute(SharedController: SharedController) {
+class SharedRoute(sharedController: SharedController) {
 
   val route: Route = pathPrefix("shared") {
+
     get {
       path(IntNumber) { id =>
-        val result: Future[Either[String, SharedModel]] = SharedController.obtenerCompartidosPorUsuario(id: Int)
-        onSuccess(result) {
-          case Right(shared)      => complete(shared)
+        val results: Future[Either[String, List[SharedModel]]] = sharedController.obtenerCompartidosPorUsuario(id)
+        onSuccess(results) {
+          case Right(share)       => complete(share)
           case Left(errorMessage) => complete(HttpResponse(StatusCodes.NotFound, entity = errorMessage))
         }
       }
@@ -26,7 +28,7 @@ class SharedRoute(SharedController: SharedController) {
         post {
           entity(as[SharedCreateModel]) { shared =>
             val result: Future[Either[String, SharedModel]] =
-              SharedController.guardarCompartido(shared.usuario_id, shared.archivo_id)
+              sharedController.guardarCompartido(shared.usuario_id, shared.archivo_id)
             onSuccess(result) {
               case Right(newshared)   => complete(StatusCodes.Created, newshared)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
@@ -36,8 +38,8 @@ class SharedRoute(SharedController: SharedController) {
       } ~
       path("delete") {
         put {
-          entity(as[IntNumber]) { id =>
-            val result: Future[Either[String, SharedModel]] = SharedController.eliminarCompartido(id: Int)
+          entity(as[Int]) { id =>
+            val result: Future[Either[String, String]] = sharedController.eliminarCompartido(id)
             onSuccess(result) {
               case Right(newshared)   => complete(StatusCodes.Created, newshared)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))

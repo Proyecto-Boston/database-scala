@@ -11,6 +11,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.Future
 
 class SharedController {
   implicit val session: DBSession = AutoSession
