@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS `directorios` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `tamano` double NOT NULL,
   `nodo_id` int(11) DEFAULT NULL,
+  `padre_id` int(11) DEFAULT NULL DEFAULT 0,
+  `habilitado` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   KEY `FK_nodos_directorios` (`nodo_id`),

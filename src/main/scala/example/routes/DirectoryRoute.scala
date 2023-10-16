@@ -6,7 +6,7 @@ import controllers.DirectoryController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.{DirectoryModel, DirectoryCreateModel}
+import models.{DirectoryModel, DirectoryCreateModel, SubDirectoryCreateModel}
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 
@@ -44,7 +44,7 @@ class DirectoryRoute(directoryController: DirectoryController) {
       } ~
       path("saveSubDirectories") {
         post {
-          entity(as[List[DirectoryCreateModel]]) { subDirectories =>
+          entity(as[List[SubDirectoryCreateModel]]) { subDirectories =>
             val results: Future[List[Either[String, DirectoryModel]]] = directoryController.guardarSubDirectorios(
               subDirectories.map(subDirectory =>
                 (
@@ -52,7 +52,8 @@ class DirectoryRoute(directoryController: DirectoryController) {
                   subDirectory.ruta,
                   subDirectory.usuario_id,
                   subDirectory.tamano,
-                  subDirectory.nodo_id
+                  subDirectory.nodo_id,
+                  subDirectory.padre_id
                 )
               )
             )
@@ -67,6 +68,18 @@ class DirectoryRoute(directoryController: DirectoryController) {
             }
           }
         }
+      } ~
+      path("delete") {
+        put {
+          entity(as[Int]) { id =>
+            val result: Future[Either[String, String]] = directoryController.borrarDirectorio(id)
+            onSuccess(result) {
+              case Right(newshared)   => complete(StatusCodes.Created, newshared)
+              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+            }
+          }
+        }
+
       }
   }
 }

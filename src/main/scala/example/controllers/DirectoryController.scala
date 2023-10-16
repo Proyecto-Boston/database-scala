@@ -22,7 +22,9 @@ class DirectoryController {
               rs.string("ruta"),
               rs.int("usuario_id"),
               rs.double("tamano"),
-              rs.int("nodo_id")
+              rs.int("nodo_id"),
+              rs.int("padre_id"),
+              rs.boolean("habilitado")
             )
           }
           .single()
@@ -59,7 +61,7 @@ class DirectoryController {
               val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
               // Crea una instancia de DirectoryModel con el ID real
-              val directorio = DirectoryModel(generatedId.toInt, nombre, ruta, usuario_id, tamano, nodo_id)
+              val directorio = DirectoryModel(generatedId.toInt, nombre, ruta, usuario_id, tamano, nodo_id, 0, true)
               Right(directorio)
             } else {
               Left("No se pudo agregar el directorio")
@@ -75,16 +77,16 @@ class DirectoryController {
   }
 
   def guardarSubDirectorios(
-      subdirectorios: List[(String, String, Int, Double, Int)]
+      subdirectorios: List[(String, String, Int, Double, Int, Int)]
   ): Future[List[Either[String, DirectoryModel]]] = {
     Future.sequence {
-      subdirectorios.map { case (nombre, rutaPadre, usuario_id, tamano, nodo_id) =>
+      subdirectorios.map { case (nombre, rutaPadre, usuario_id, tamano, nodo_id, padre_id) =>
         Future {
           try {
             val nuevaRuta = s"$rutaPadre/$nombre"
 
             val result =
-              sql"INSERT INTO directorios (nombre, ruta, usuario_id, tamano, nodo_id) VALUES ($nombre, $nuevaRuta, $usuario_id, $tamano, $nodo_id)"
+              sql"INSERT INTO directorios (nombre, ruta, usuario_id, tamano, nodo_id, padre_id) VALUES ($nombre, $nuevaRuta, $usuario_id, $tamano, $nodo_id, $padre_id)"
                 .update()
 
             if (result > 0) {
@@ -92,7 +94,8 @@ class DirectoryController {
               val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
               // Crea una instancia de DirectoryModel con el ID real
-              val directorio = DirectoryModel(generatedId.toInt, nombre, nuevaRuta, usuario_id, tamano, nodo_id)
+              val directorio =
+                DirectoryModel(generatedId.toInt, nombre, nuevaRuta, usuario_id, tamano, nodo_id, padre_id, true)
               Right(directorio)
             } else {
               Left("No se pudo agregar el sub directorio")
@@ -150,31 +153,36 @@ class DirectoryController {
       }
     }
   }
-  /*
+
   def borrarDirectorio(id: Int): Future[Either[String, String]] = {
     Future {
       try {
         // Deshabilita todos los subdirectorios del directorio especificado
-        deshabilitarSubdirectorios(id).flatMap {
-          case Right(_) =>
-            // Deshabilita todos los archivos del directorio especificado
-            deshabilitarArchivos(id).flatMap {
-              case Right(_) =>
-                // Deshabilita el directorio
-                val disableResult = sql"UPDATE directorios SET habilitado = false WHERE id = $id"
-                  .update()
+        val disableSubD = sql"UPDATE directorios SET habilitado = false WHERE padre_id = $id".update()
 
-                if (disableResult > 0) {
-                  // Directorio y su contenido deshabilitados correctamente
-                  Right("Directorio y su contenido deshabilitados correctamente")
-                } else {
-                  // No se encontró el directorio o no se pudo deshabilitar
-                  Left("No se pudo deshabilitar el directorio y su contenido")
-                }
-              case Left(error) => Future(Left(error))
+        if (disableSubD > 0) {
+          // Deshabilita todos los archivos del directorio especificado
+          val disableF = sql"UPDATE archivos SET habilitado = false WHERE directorio_id = $id".update()
+
+          if (disableF > 0) {
+            // Deshabilita el directorio
+            val disableResult = sql"UPDATE directorios SET habilitado = false WHERE id = $id".update()
+            if (disableResult > 0) {
+              // Directorio y su contenido deshabilitados correctamente
+              Right("Directorio y su contenido deshabilitados correctamente")
+            } else {
+              // No se encontró el directorio o no se pudo deshabilitar
+              Left("No se pudo deshabilitar el directorio y su contenido")
             }
-          case Left(error) => Future(Left(error))
+          } else {
+            // No se encontraron archivos o no se pudieron deshabilitar
+            Left("No se pudieron deshabilitar los archivos")
+          }
+        } else {
+          // No se encontraron subdirectorios o no se pudieron deshabilitar
+          Left("No se pudieron deshabilitar los subdirectorios")
         }
+
       } catch {
         case e: Exception =>
           println(s"Error interno del servidor: ${e.getMessage}")
@@ -182,6 +190,4 @@ class DirectoryController {
       }
     }
   }
-   */
-
 }
