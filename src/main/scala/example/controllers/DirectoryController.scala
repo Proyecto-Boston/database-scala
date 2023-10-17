@@ -157,29 +157,63 @@ class DirectoryController {
   def borrarDirectorio(id: Int): Future[Either[String, String]] = {
     Future {
       try {
-        // Deshabilita todos los subdirectorios del directorio especificado
-        val disableSubD = sql"UPDATE directorios SET habilitado = false WHERE padre_id = $id".update()
+        // Deshabilita el directorio
+
+        val disableSubD = sql"UPDATE directorios SET habilitado = false WHERE id = $id".update()
 
         if (disableSubD > 0) {
-          // Deshabilita todos los archivos del directorio especificado
-          val disableF = sql"UPDATE archivos SET habilitado = false WHERE directorio_id = $id".update()
+          val count = sql"SELECT count(*) FROM directorios WHERE id = $id"
+          val subD = sql"SELECT * FROM directorios WHERE id = $id"
+            .map { rs =>
+              DirectoryModel(
+                rs.int("id"),
+                rs.string("nombre"),
+                rs.string("ruta"),
+                rs.int("usuarioId"),
+                rs.double("tamano"),
+                rs.int("nodoId"),
+                rs.int("padreId"),
+                rs.boolean("habilitado")
+              )
+            }
+            .list()
 
-          if (disableF > 0) {
-            // Deshabilita el directorio
-            val disableResult = sql"UPDATE directorios SET habilitado = false WHERE id = $id".update()
+          for (i <- subD) {
+
+            val subid = i.id
+
+            // Deshabilita todos los archivos del directorio especificado
+            val disableResult = sql"UPDATE archivos SET habilitado = false WHERE directorio_id = $subid".update()
             if (disableResult > 0) {
               // Directorio y su contenido deshabilitados correctamente
               Right("Directorio y su contenido deshabilitados correctamente")
             } else {
-              // No se encontró el directorio o no se pudo deshabilitar
+              // No se encontró el archivo o no se pudo deshabilitar
+              Left("No se pudo deshabilitar el directorio y su contenido")
+            }
+
+          }
+
+          // Deshabilita todos los subdirectorios del directorio especificado
+
+          val disableF = sql"UPDATE directorios SET habilitado = false WHERE padre_id = $id".update()
+
+          if (disableF > 0) {
+            // Deshabilita todos los archivos del directorio especificado
+            val disableResult = sql"UPDATE archivos SET habilitado = false WHERE directorio_id = $id".update()
+            if (disableResult > 0) {
+              // Directorio y su contenido deshabilitados correctamente
+              Right("Directorio y su contenido deshabilitados correctamente")
+            } else {
+              // No se encontró el archivo o no se pudo deshabilitar
               Left("No se pudo deshabilitar el directorio y su contenido")
             }
           } else {
-            // No se encontraron archivos o no se pudieron deshabilitar
+            // No se encontraron subdirectorio o no se pudieron deshabilitar
             Left("No se pudieron deshabilitar los archivos")
           }
         } else {
-          // No se encontraron subdirectorios o no se pudieron deshabilitar
+          // No se encontraron directorio o no se pudieron deshabilitar
           Left("No se pudieron deshabilitar los subdirectorios")
         }
 
