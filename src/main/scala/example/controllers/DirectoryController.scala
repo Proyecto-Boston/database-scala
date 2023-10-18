@@ -79,14 +79,14 @@ class DirectoryController {
   }
 
   def guardarDirectorios(
-      directorios: List[(String, String, Int, Double, Int)]
+      directorios: List[(String, String, Int, Int)]
   ): Future[List[Either[String, DirectoryModel]]] = {
     Future.sequence {
-      directorios.map { case (nombre, ruta, usuario_id, tamano, nodo_id) =>
+      directorios.map { case (nombre, ruta, usuario_id, nodo_id) =>
         Future {
           try {
             val result =
-              sql"INSERT INTO directorios (nombre, ruta, usuario_id, tamano, nodo_id) VALUES ($nombre, $ruta, $usuario_id, $tamano, $nodo_id)"
+              sql"INSERT INTO directorios (nombre, ruta, usuario_id, nodo_id) VALUES ($nombre, $ruta, $usuario_id, $nodo_id)"
                 .update()
 
             if (result > 0) {
@@ -94,7 +94,7 @@ class DirectoryController {
               val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
               // Crea una instancia de DirectoryModel con el ID real
-              val directorio = DirectoryModel(generatedId.toInt, nombre, ruta, usuario_id, tamano, nodo_id, 0, true)
+              val directorio = DirectoryModel(generatedId.toInt, nombre, ruta, usuario_id, 0.0, nodo_id, 0, true)
               Right(directorio)
             } else {
               Left("No se pudo agregar el directorio")
@@ -110,16 +110,16 @@ class DirectoryController {
   }
 
   def guardarSubDirectorios(
-      subdirectorios: List[(String, String, Int, Double, Int, Int)]
+      subdirectorios: List[(String, String, Int, Int, Int)]
   ): Future[List[Either[String, DirectoryModel]]] = {
     Future.sequence {
-      subdirectorios.map { case (nombre, rutaPadre, usuario_id, tamano, nodo_id, padre_id) =>
+      subdirectorios.map { case (nombre, rutaPadre, usuario_id, nodo_id, padre_id) =>
         Future {
           try {
             val nuevaRuta = s"$rutaPadre/$nombre"
 
             val result =
-              sql"INSERT INTO directorios (nombre, ruta, usuario_id, tamano, nodo_id, padre_id) VALUES ($nombre, $nuevaRuta, $usuario_id, $tamano, $nodo_id, $padre_id)"
+              sql"INSERT INTO directorios (nombre, ruta, usuario_id, nodo_id, padre_id) VALUES ($nombre, $nuevaRuta, $usuario_id, $nodo_id, $padre_id)"
                 .update()
 
             if (result > 0) {
@@ -128,7 +128,7 @@ class DirectoryController {
 
               // Crea una instancia de DirectoryModel con el ID real
               val directorio =
-                DirectoryModel(generatedId.toInt, nombre, nuevaRuta, usuario_id, tamano, nodo_id, padre_id, true)
+                DirectoryModel(generatedId.toInt, nombre, nuevaRuta, usuario_id, 0.0, nodo_id, padre_id, true)
               Right(directorio)
             } else {
               Left("No se pudo agregar el sub directorio")
