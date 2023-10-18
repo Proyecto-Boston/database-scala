@@ -20,3 +20,5 @@ case class SubDirectoryCreateModel(
     nodo_id: Int,
     padre_id: Int
 )
+
+case class Directorysearch(usuario_id: Int, padre_id: Int)

@@ -193,4 +193,32 @@ class FileController {
     }
   }
 
+  def obtenerArchivosPorDirectorio(directorio_id: Int): Future[Either[String, List[FileModel]]] = {
+    Future {
+      try {
+        val archivos = sql"SELECT * FROM archivos WHERE habilitado = true AND directorio_id = $directorio_id"
+          .map { rs =>
+            FileModel(
+              rs.int("id"),
+              rs.string("nombre"),
+              rs.string("ruta"),
+              rs.double("tamano"),
+              rs.int("usuario_id"),
+              rs.boolean("habilitado"),
+              rs.int("nodo_id"),
+              rs.int("directorio_id")
+            )
+          }
+          .list()
+
+        // Respuesta exitosa con estado 200 y lista de archivos
+        Right(archivos)
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
+      }
+    }
+  }
+
 }

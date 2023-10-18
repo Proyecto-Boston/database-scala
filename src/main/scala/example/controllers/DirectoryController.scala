@@ -44,6 +44,39 @@ class DirectoryController {
       }
     }
   }
+  def buscarSubDirectorio(id: Int, padre_id: Int): Future[Either[String, DirectoryModel]] = {
+    Future {
+      try {
+        val directorioOption = sql"SELECT * FROM directorios WHERE id = $id AND  padre_id = $padre_id"
+          .map { rs =>
+            DirectoryModel(
+              rs.int("id"),
+              rs.string("nombre"),
+              rs.string("ruta"),
+              rs.int("usuario_id"),
+              rs.double("tamano"),
+              rs.int("nodo_id"),
+              rs.int("padre_id"),
+              rs.boolean("habilitado")
+            )
+          }
+          .single()
+          .map { directorio =>
+            // Respuesta exitosa con estado 200 y JSON de usuario
+            Right(directorio)
+          }
+
+        directorioOption.getOrElse {
+          // Usuario no encontrado con código 404
+          Left("Directorio no encontrado")
+        }
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
+      }
+    }
+  }
 
   def guardarDirectorios(
       directorios: List[(String, String, Int, Double, Int)]

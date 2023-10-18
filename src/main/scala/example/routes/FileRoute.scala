@@ -87,6 +87,18 @@ class FileRoute(fileController: FileController) {
           }
 
         }
+      } ~
+      path("fileByDirectory" / IntNumber) { directorio_id =>
+        get {
+          val result: Future[Either[String, List[FileModel]]] =
+            fileController.obtenerArchivosPorDirectorio(directorio_id)
+          onSuccess(result) {
+            case Right(file)        => complete(file)
+            case Left(errorMessage) => complete(HttpResponse(StatusCodes.NotFound, entity = errorMessage))
+
+          }
+
+        }
       }
   }
 }
