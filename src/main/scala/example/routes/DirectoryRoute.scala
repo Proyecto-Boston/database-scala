@@ -89,33 +89,29 @@ class DirectoryRoute(directoryController: DirectoryController) {
             }
           }
         }
-      }
-
-    path("deshabilitarSubdirectorios") {
-      put {
-        entity(as[Int]) { directoryId =>
-          val result: Future[Either[String, String]] =
-            directoryController.deshabilitarSubdirectorios(directoryId)
-          onSuccess(result) {
-            case Right(message)     => complete(StatusCodes.OK, message)
-            case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+      } ~ path("deshabilitarSubdirectorios") {
+        put {
+          entity(as[Int]) { directoryId =>
+            val result: Future[Either[String, String]] =
+              directoryController.deshabilitarSubdirectorios(directoryId)
+            onSuccess(result) {
+              case Right(message)     => complete(StatusCodes.OK, message)
+              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+            }
+          }
+        }
+      } ~ path("deshabilitarArchivos") {
+        put {
+          entity(as[Int]) { directoryId =>
+            val result: Future[Either[String, String]] =
+              directoryController.deshabilitarArchivos(directoryId)
+            onSuccess(result) {
+              case Right(message)     => complete(StatusCodes.OK, message)
+              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+            }
           }
         }
       }
-    }
-
-    path("deshabilitarArchivos") {
-      put {
-        entity(as[Int]) { directoryId =>
-          val result: Future[Either[String, String]] =
-            directoryController.deshabilitarArchivos(directoryId)
-          onSuccess(result) {
-            case Right(message)     => complete(StatusCodes.OK, message)
-            case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
-          }
-        }
-      }
-    }
 
   }
 }
