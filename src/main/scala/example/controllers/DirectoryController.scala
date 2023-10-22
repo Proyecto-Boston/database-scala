@@ -2,6 +2,7 @@ package controllers
 
 import scalikejdbc._
 import models.DirectoryModel
+import models.Directorysearch
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -44,30 +45,29 @@ class DirectoryController {
       }
     }
   }
-  def buscarSubDirectorio(id: Int, padre_id: Int): Future[Either[String, DirectoryModel]] = {
+  def buscarSubDirectorio(search: Directorysearch): Future[Either[String, DirectoryModel]] = {
     Future {
       try {
-        val directorioOption = sql"SELECT * FROM directorios WHERE id = $id AND  padre_id = $padre_id"
-          .map { rs =>
-            DirectoryModel(
-              rs.int("id"),
-              rs.string("nombre"),
-              rs.string("ruta"),
-              rs.int("usuario_id"),
-              rs.double("tamano"),
-              rs.int("nodo_id"),
-              rs.int("padre_id"),
-              rs.boolean("habilitado")
-            )
-          }
-          .single()
-          .map { directorio =>
-            // Respuesta exitosa con estado 200 y JSON de usuario
-            Right(directorio)
-          }
+        val directorioOption =
+          sql"SELECT * FROM directorios WHERE id = ${search.usuario_id} AND  padre_id = ${search.padre_id}"
+            .map { rs =>
+              DirectoryModel(
+                rs.int("id"),
+                rs.string("nombre"),
+                rs.string("ruta"),
+                rs.int("usuario_id"),
+                rs.double("tamano"),
+                rs.int("nodo_id"),
+                rs.int("padre_id"),
+                rs.boolean("habilitado")
+              )
+            }
+            .single()
+            .map { directorio =>
+              Right(directorio)
+            }
 
         directorioOption.getOrElse {
-          // Usuario no encontrado con código 404
           Left("Directorio no encontrado")
         }
       } catch {
