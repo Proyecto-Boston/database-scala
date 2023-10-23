@@ -1,7 +1,7 @@
 package controllers
 
 import scalikejdbc._
-import models.{FileModel, FileReportModel}
+import models.{FileModel, FileReportModel, respaldoModel}
 
 import io.circe._
 import io.circe.generic.auto._
@@ -216,6 +216,23 @@ class FileController {
       } catch {
         case e: Exception =>
           println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
+      }
+    }
+  }
+  def guardarRespaldo(respaldo: respaldoModel): Future[Either[String, String]] = {
+    Future {
+      try {
+        // Inserta el nuevo respaldo en la base de datos
+        sql"""
+          INSERT INTO respaldos (ruta, archivo_id, nodo_id, usuario_id)
+          VALUES (${respaldo.ruta}, ${respaldo.archivoId}, ${respaldo.nodoId}, ${respaldo.usuarioId})
+        """.update()
+
+        Right("Respaldo guardado correctamente")
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}")
           Left("Error interno del servidor")
       }
     }

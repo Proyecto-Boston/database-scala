@@ -23,3 +23,10 @@ case class FileCreateModel(
     nodo_id: Int,
     directorio_id: Int
 )
+
+case class respaldoModel(
+    ruta: String,
+    archivoId: Int,
+    nodoId: Int,
+    usuarioId: Int
+)
