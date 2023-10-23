@@ -70,7 +70,7 @@ class DirectoryRoute(directoryController: DirectoryController) {
         }
       } ~
       path("delete") {
-        post {
+        put {
           entity(as[Int]) { id =>
             val result: Future[Either[String, String]] = directoryController.borrarDirectorio(id)
             onSuccess(result) {
@@ -98,11 +98,13 @@ class DirectoryRoute(directoryController: DirectoryController) {
             val result: Future[Either[String, String]] =
               directoryController.deshabilitarSubdirectorios(directoryId)
             onSuccess(result) {
-              case Right(message)     => complete(StatusCodes.OK, message)
-              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+              case Right(message) => complete(StatusCodes.OK, message)
+              case Left(errorMessage) =>
+                complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
             }
           }
         }
+
       } ~ path("deshabilitarArchivos") {
         put {
           entity(as[Int]) { directoryId =>
