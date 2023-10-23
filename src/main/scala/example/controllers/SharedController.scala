@@ -46,7 +46,7 @@ class SharedController {
   def eliminarCompartido(id: Int): Future[Either[String, String]] = {
     Future {
       try {
-        val resultado = sql"DELETE from compartido WHERE id = $id".update()
+        val resultado = sql"DELETE from compartidos WHERE id = $id".update()
 
         if (resultado > 0) {
 
@@ -67,7 +67,7 @@ class SharedController {
   def obtenerCompartidosPorUsuario(usuario_id: Int): Future[Either[String, List[SharedModel]]] = {
     Future {
       try {
-        val archivos = sql"SELECT * FROM compartido WHERE usuario_id = $usuario_id"
+        val archivos = sql"SELECT * FROM compartidos WHERE usuario_id = $usuario_id"
           .map { rs =>
             SharedModel(
               rs.int("id"),

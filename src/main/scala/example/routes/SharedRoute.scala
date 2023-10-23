@@ -6,7 +6,7 @@ import controllers.SharedController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.{SharedModel, SharedCreateModel}
+import models.{SharedModel, SharedCreateModel, SharedDeleteModel}
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 import scala.concurrent.Future
@@ -37,9 +37,9 @@ class SharedRoute(sharedController: SharedController) {
         }
       } ~
       path("delete") {
-        put {
-          entity(as[Int]) { id =>
-            val result: Future[Either[String, String]] = sharedController.eliminarCompartido(id)
+        post {
+          entity(as[SharedDeleteModel]) { shared =>
+            val result: Future[Either[String, String]] = sharedController.eliminarCompartido(shared.id)
             onSuccess(result) {
               case Right(newshared)   => complete(StatusCodes.Created, newshared)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
