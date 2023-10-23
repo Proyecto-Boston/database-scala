@@ -190,7 +190,7 @@ class FileController {
               rs.boolean("habilitado"),
               rs.int("nodo_id"),
               rs.int("directorio_id"),
-              rs.int("respado_id")
+              rs.int("respaldo_id")
             )
           }
           .list()
@@ -219,7 +219,7 @@ class FileController {
               rs.boolean("habilitado"),
               rs.int("nodo_id"),
               rs.int("directorio_id"),
-              rs.int("respado_id")
+              rs.int("respaldo_id")
             )
           }
           .list()

@@ -61,7 +61,7 @@ class DirectoryController {
                 rs.int("nodo_id"),
                 rs.int("padre_id"),
                 rs.boolean("habilitado"),
-                rs.int("respado_id")
+                rs.int("respaldo_id")
               )
             }
             .single()

@@ -9,7 +9,7 @@ case class DirectoryModel(
     nodoId: Int,
     padreId: Int,
     habilitado: Boolean,
-    respado_id: Int
+    respaldo_id: Int
 )
 case class DirectoryCreateModel(nombre: String, ruta: String, usuario_id: Int, nodo_id: Int, respaldo_id: Int)
 
