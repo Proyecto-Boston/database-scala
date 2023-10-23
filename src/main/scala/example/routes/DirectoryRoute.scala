@@ -26,7 +26,9 @@ class DirectoryRoute(directoryController: DirectoryController) {
         post {
           entity(as[List[DirectoryCreateModel]]) { directories =>
             val results: Future[List[Either[String, DirectoryModel]]] = directoryController.guardarDirectorios(
-              directories.map(directory => (directory.nombre, directory.ruta, directory.usuario_id, directory.nodo_id))
+              directories.map(directory =>
+                (directory.nombre, directory.ruta, directory.usuario_id, directory.nodo_id, directory.respaldo_id)
+              )
             )
             onSuccess(results) { list =>
               val errors = list.collect { case Left(errorMessage) => errorMessage }
@@ -50,7 +52,8 @@ class DirectoryRoute(directoryController: DirectoryController) {
                   subDirectory.ruta,
                   subDirectory.usuario_id,
                   subDirectory.nodo_id,
-                  subDirectory.padre_id
+                  subDirectory.padre_id,
+                  subDirectory.respaldo_id
                 )
               )
             )

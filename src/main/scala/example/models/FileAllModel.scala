@@ -8,7 +8,8 @@ case class FileModel(
     usuario_id: Int,
     habilitado: Boolean,
     nodo_id: Int,
-    directorio_id: Int
+    directorio_id: Int,
+    respaldo_id: Int
 )
 
 case class FileReportModel(usuario_id: Int, tamano: Double)
@@ -21,12 +22,6 @@ case class FileCreateModel(
     tamano: Double,
     usuario_id: Int,
     nodo_id: Int,
-    directorio_id: Int
-)
-
-case class respaldoModel(
-    ruta: String,
-    archivoId: Int,
-    nodoId: Int,
-    usuarioId: Int
+    directorio_id: Int,
+    respaldo_id: Int
 )

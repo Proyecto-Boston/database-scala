@@ -1,7 +1,7 @@
 package controllers
 
 import scalikejdbc._
-import models.{FileModel, FileReportModel, respaldoModel}
+import models.{FileModel, FileReportModel}
 
 import io.circe._
 import io.circe.generic.auto._
@@ -27,7 +27,8 @@ class FileController {
               rs.int("usuario_id"),
               rs.boolean("habilitado"),
               rs.int("nodo_id"),
-              rs.int("directorio_id")
+              rs.int("directorio_id"),
+              rs.int("respaldo_id")
             )
           }
           .single()
@@ -49,14 +50,14 @@ class FileController {
   }
 
   def guardarArchivos(
-      archivos: List[(String, String, Double, Int, Int, Int)]
+      archivos: List[(String, String, Double, Int, Int, Int, Int)]
   ): Future[List[Either[String, FileModel]]] = {
     Future.sequence {
-      archivos.map { case (nombre, ruta, tamano, usuario_id, nodo_id, directorio_id) =>
+      archivos.map { case (nombre, ruta, tamano, usuario_id, nodo_id, directorio_id, respaldo_id) =>
         Future {
           try {
             val result =
-              sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, nodo_id, directorio_id) VALUES ($nombre, $ruta, $tamano, $usuario_id, $nodo_id,$directorio_id)"
+              sql"INSERT INTO archivos (nombre, ruta, tamano, usuario_id, nodo_id, directorio_id, respaldo_id) VALUES ($nombre, $ruta, $tamano, $usuario_id, $nodo_id,$directorio_id, $respaldo_id)"
                 .update()
 
             if (result > 0) {
@@ -64,7 +65,17 @@ class FileController {
               val generatedId: Long = sql"SELECT LAST_INSERT_ID()".map(rs => rs.long(1)).single().getOrElse(0L)
 
               // Crea una instancia de DirectoryModel con el ID real
-              val archivo = FileModel(generatedId.toInt, nombre, ruta, tamano, usuario_id, true, nodo_id, directorio_id)
+              val archivo = FileModel(
+                generatedId.toInt,
+                nombre,
+                ruta,
+                tamano,
+                usuario_id,
+                true,
+                nodo_id,
+                directorio_id,
+                respaldo_id
+              )
               Right(archivo)
             } else {
               Left("No se pudo agregar el archivo")
@@ -178,7 +189,8 @@ class FileController {
               rs.int("usuario_id"),
               rs.boolean("habilitado"),
               rs.int("nodo_id"),
-              rs.int("directorio_id")
+              rs.int("directorio_id"),
+              rs.int("respado_id")
             )
           }
           .list()
@@ -206,7 +218,8 @@ class FileController {
               rs.int("usuario_id"),
               rs.boolean("habilitado"),
               rs.int("nodo_id"),
-              rs.int("directorio_id")
+              rs.int("directorio_id"),
+              rs.int("respado_id")
             )
           }
           .list()
@@ -220,22 +233,4 @@ class FileController {
       }
     }
   }
-  def guardarRespaldo(respaldo: respaldoModel): Future[Either[String, String]] = {
-    Future {
-      try {
-        // Inserta el nuevo respaldo en la base de datos
-        sql"""
-          INSERT INTO respaldos (ruta, archivo_id, nodo_id, usuario_id)
-          VALUES (${respaldo.ruta}, ${respaldo.archivoId}, ${respaldo.nodoId}, ${respaldo.usuarioId})
-        """.update()
-
-        Right("Respaldo guardado correctamente")
-      } catch {
-        case e: Exception =>
-          println(s"Error interno del servidor: ${e.getMessage}")
-          Left("Error interno del servidor")
-      }
-    }
-  }
-
 }

@@ -6,7 +6,7 @@ import controllers.FileController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.{FileModel, FileReportModel, FileMoveModel, FileCreateModel, respaldoModel}
+import models.{FileModel, FileReportModel, FileMoveModel, FileCreateModel}
 import scala.concurrent.Future
 
 class FileRoute(fileController: FileController) {
@@ -27,7 +27,15 @@ class FileRoute(fileController: FileController) {
             val result: Future[List[Either[String, FileModel]]] =
               fileController.guardarArchivos(
                 files.map(file =>
-                  (file.nombre, file.ruta, file.tamano, file.usuario_id, file.nodo_id, file.directorio_id)
+                  (
+                    file.nombre,
+                    file.ruta,
+                    file.tamano,
+                    file.usuario_id,
+                    file.nodo_id,
+                    file.directorio_id,
+                    file.respaldo_id
+                  )
                 )
               )
             onSuccess(result) { list =>
@@ -98,18 +106,6 @@ class FileRoute(fileController: FileController) {
 
           }
 
-        }
-      } ~
-      path("respaldos") {
-        post {
-          entity(as[respaldoModel]) { respaldo =>
-            val result: Future[Either[String, String]] =
-              fileController.guardarRespaldo(respaldo)
-            onSuccess(result) {
-              case Right(message)     => complete(StatusCodes.Created, message)
-              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
-            }
-          }
         }
       }
   }

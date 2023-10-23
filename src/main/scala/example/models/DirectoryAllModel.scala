@@ -8,16 +8,18 @@ case class DirectoryModel(
     tamano: Double,
     nodoId: Int,
     padreId: Int,
-    habilitado: Boolean
+    habilitado: Boolean,
+    respado_id: Int
 )
-case class DirectoryCreateModel(nombre: String, ruta: String, usuario_id: Int, nodo_id: Int)
+case class DirectoryCreateModel(nombre: String, ruta: String, usuario_id: Int, nodo_id: Int, respaldo_id: Int)
 
 case class SubDirectoryCreateModel(
     nombre: String,
     ruta: String,
     usuario_id: Int,
     nodo_id: Int,
-    padre_id: Int
+    padre_id: Int,
+    respaldo_id: Int
 )
 
 case class Directorysearch(usuario_id: Int, padre_id: Int)
