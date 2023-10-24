@@ -46,11 +46,11 @@ class DirectoryController {
       }
     }
   }
-  def buscarSubDirectorio(search: Directorysearch): Future[Either[String, DirectoryModel]] = {
+  def buscarSubDirectorio(padre_id: Int): Future[Either[String, List[DirectoryModel]]] = {
     Future {
       try {
         val directorioOption =
-          sql"SELECT * FROM directorios WHERE id = ${search.usuario_id} AND  padre_id = ${search.padre_id}"
+          sql"SELECT * FROM directorios WHERE padre_id = $padre_id AND habilitado = 1"
             .map { rs =>
               DirectoryModel(
                 rs.int("id"),
@@ -64,14 +64,40 @@ class DirectoryController {
                 rs.int("respaldo_id")
               )
             }
-            .single()
-            .map { directorio =>
-              Right(directorio)
-            }
+            .list()
 
-        directorioOption.getOrElse {
-          Left("Directorio no encontrado")
-        }
+        Right(directorioOption)
+
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error
+          Left("Error interno del servidor")
+      }
+    }
+  }
+
+  def buscarDirectorioRoot(usuario_id: Int): Future[Either[String, List[DirectoryModel]]] = {
+    Future {
+      try {
+        val directorioOption =
+          sql"SELECT * FROM directorios WHERE padre_id = 0 AND habilitado = 1 AND usuario_id = $usuario_id"
+            .map { rs =>
+              DirectoryModel(
+                rs.int("id"),
+                rs.string("nombre"),
+                rs.string("ruta"),
+                rs.int("usuario_id"),
+                rs.double("tamano"),
+                rs.int("nodo_id"),
+                rs.int("padre_id"),
+                rs.boolean("habilitado"),
+                rs.int("respaldo_id")
+              )
+            }
+            .list()
+
+        Right(directorioOption)
+
       } catch {
         case e: Exception =>
           println(s"Error interno del servidor: ${e.getMessage}") // Imprime detalles del error

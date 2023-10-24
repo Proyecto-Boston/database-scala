@@ -83,9 +83,22 @@ class DirectoryRoute(directoryController: DirectoryController) {
       } ~
       path("buscarSubDirectorio") {
         post {
-          entity(as[Directorysearch]) { search =>
-            val result: Future[Either[String, DirectoryModel]] =
-              directoryController.buscarSubDirectorio(search)
+          entity(as[Int]) { padre_id =>
+            val result: Future[Either[String, List[DirectoryModel]]] =
+              directoryController.buscarSubDirectorio(padre_id)
+            onSuccess(result) {
+              case Right(newshared)   => complete(StatusCodes.Created, newshared)
+              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+            }
+          }
+        }
+
+      } ~
+      path("buscarDirectorioRoot") {
+        post {
+          entity(as[Int]) { usuario_id =>
+            val result: Future[Either[String, List[DirectoryModel]]] =
+              directoryController.buscarDirectorioRoot(usuario_id)
             onSuccess(result) {
               case Right(newshared)   => complete(StatusCodes.Created, newshared)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
