@@ -3,6 +3,7 @@ package controllers
 
 import scalikejdbc._
 import models.SharedModel
+import models.FileModel
 
 import io.circe._
 import io.circe.generic.auto._
@@ -64,18 +65,33 @@ class SharedController {
     }
   }
 
-  def obtenerCompartidosPorUsuario(usuario_id: Int): Future[Either[String, List[SharedModel]]] = {
+  def obtenerCompartidosPorUsuario(usuario_id: Int): Future[Either[String, List[FileModel]]] = {
     Future {
       try {
-        val archivos = sql"SELECT * FROM compartidos WHERE usuario_id = $usuario_id"
+        val archivosCompartidos = sql"SELECT * FROM compartidos WHERE usuario_id = $usuario_id"
           .map { rs =>
-            SharedModel(
-              rs.int("id"),
-              rs.int("usuario_id"),
-              rs.int("archivo_id")
-            )
+            val archivoId = rs.int("archivo_id")
+            // Obtén los detalles del archivo basándote en el archivo_id
+            sql"SELECT * FROM archivos WHERE id = $archivoId"
+              .map(rs =>
+                FileModel(
+                  rs.int("id"),
+                  rs.string("nombre"),
+                  rs.string("ruta"),
+                  rs.double("tamano"),
+                  rs.int("usuario_id"),
+                  rs.boolean("habilitado"),
+                  rs.int("nodo_id"),
+                  rs.int("directorio_id"),
+                  rs.int("respaldo_id")
+                )
+              )
+              .single()
           }
           .list()
+
+        // Filtra los None y obtén solo los Some[FileModel]
+        val archivos = archivosCompartidos.flatten
 
         // Respuesta exitosa con estado 200 y lista de archivos
         Right(archivos)
