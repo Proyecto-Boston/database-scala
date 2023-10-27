@@ -53,7 +53,8 @@ class FileRoute(fileController: FileController) {
       path("move") {
         put {
           entity(as[FileMoveModel]) { file =>
-            val result: Future[Either[String, FileModel]] = fileController.moverArchivo(file.id, file.nuevaRuta)
+            val result: Future[Either[String, FileModel]] =
+              fileController.moverArchivo(file.id, file.nuevaRuta, file.directorio_id)
             onSuccess(result) {
               case Right(newFile)     => complete(StatusCodes.Created, newFile)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))

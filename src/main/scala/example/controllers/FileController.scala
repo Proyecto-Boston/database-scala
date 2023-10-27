@@ -90,11 +90,12 @@ class FileController {
     }
   }
 
-  def moverArchivo(id: Int, nuevaRuta: String): Future[Either[String, FileModel]] = {
+  def moverArchivo(id: Int, nuevaRuta: String, directorio_id: Int): Future[Either[String, FileModel]] = {
     Future {
       try {
         // Realizar la actualización en la base de datos
-        val resultado = sql"UPDATE archivos SET ruta = $nuevaRuta WHERE id = $id".update()
+        val resultado =
+          sql"UPDATE archivos SET ruta = $nuevaRuta, directorio_id= $directorio_id WHERE id = $id".update()
 
         if (resultado > 0) {
           // La actualización fue exitosa, llamar a buscarArchivo para obtener el archivo actualizado

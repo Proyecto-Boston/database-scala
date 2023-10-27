@@ -14,7 +14,7 @@ case class FileModel(
 
 case class FileReportModel(usuario_id: Int, tamano: Double)
 
-case class FileMoveModel(id: Int, nuevaRuta: String)
+case class FileMoveModel(id: Int, nuevaRuta: String, directorio_id: Int)
 
 case class FileCreateModel(
     nombre: String,
