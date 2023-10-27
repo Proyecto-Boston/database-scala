@@ -3,7 +3,7 @@ package controllers
 
 import scalikejdbc._
 import models.SharedModel
-import models.FileModel
+import models.FileModelShared
 
 import io.circe._
 import io.circe.generic.auto._
@@ -65,16 +65,17 @@ class SharedController {
     }
   }
 
-  def obtenerCompartidosPorUsuario(usuario_id: Int): Future[Either[String, List[FileModel]]] = {
+  def obtenerCompartidosPorUsuario(usuario_id: Int): Future[Either[String, List[FileModelShared]]] = {
     Future {
       try {
         val archivosCompartidos = sql"SELECT * FROM compartidos WHERE usuario_id = $usuario_id"
           .map { rs =>
+            val id = rs.int("id")
             val archivoId = rs.int("archivo_id")
             // Obtén los detalles del archivo basándote en el archivo_id
             sql"SELECT * FROM archivos WHERE id = $archivoId"
               .map(rs =>
-                FileModel(
+                FileModelShared(
                   rs.int("id"),
                   rs.string("nombre"),
                   rs.string("ruta"),
@@ -83,7 +84,8 @@ class SharedController {
                   rs.boolean("habilitado"),
                   rs.int("nodo_id"),
                   rs.int("directorio_id"),
-                  rs.int("respaldo_id")
+                  rs.int("respaldo_id"),
+                  id
                 )
               )
               .single()
