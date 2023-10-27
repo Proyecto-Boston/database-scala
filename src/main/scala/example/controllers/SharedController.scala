@@ -73,7 +73,7 @@ class SharedController {
             val id = rs.int("id")
             val archivoId = rs.int("archivo_id")
             // Obtén los detalles del archivo basándote en el archivo_id
-            sql"SELECT * FROM archivos WHERE id = $archivoId"
+            sql"SELECT * FROM archivos WHERE id = $archivoIdAND habilitado = 1"
               .map(rs =>
                 FileModelShared(
                   rs.int("id"),
