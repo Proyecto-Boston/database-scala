@@ -305,5 +305,25 @@ class DirectoryController {
       }
     }
   }
+  def renombrarDirectorio(id: Int, nuevoNombre: String): Future[Either[String, String]] = {
+    Future {
+      try {
+        // Realizar la actualización en la base de datos
+        val resultado =
+          sql"UPDATE directorios SET nombre = $nuevoNombre WHERE id = $id".update()
+
+        if (resultado > 0) {
+          Right("Renombre exitoso")
+
+        } else {
+          Left("No se pudo renombrar el directorio")
+        }
+      } catch {
+        case e: Exception =>
+          println(s"Error interno del servidor: ${e.getMessage}")
+          Left("Error interno del servidor")
+      }
+    }
+  }
 
 }

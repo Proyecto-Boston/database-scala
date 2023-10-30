@@ -6,7 +6,7 @@ import controllers.FileController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.{FileModel, FileReportModel, FileMoveModel, FileCreateModel}
+import models.{FileModel, FileReportModel, FileMoveModel, FileCreateModel, FileRenameModel}
 import scala.concurrent.Future
 
 class FileRoute(fileController: FileController) {
@@ -107,6 +107,17 @@ class FileRoute(fileController: FileController) {
 
           }
 
+        }
+      } ~ path("rename") {
+        put {
+          entity(as[FileRenameModel]) { file =>
+            val result: Future[Either[String, String]] =
+              fileController.renombrarArchivo(file.id, file.nuevoNombre)
+            onSuccess(result) {
+              case Right(newFile)     => complete(StatusCodes.Created, newFile)
+              case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+            }
+          }
         }
       }
   }

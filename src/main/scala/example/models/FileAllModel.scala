@@ -25,3 +25,5 @@ case class FileCreateModel(
     directorio_id: Int,
     respaldo_id: Int
 )
+
+case class FileRenameModel(id: Int, nuevoNombre: String)

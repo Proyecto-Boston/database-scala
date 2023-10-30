@@ -23,3 +23,5 @@ case class SubDirectoryCreateModel(
 )
 
 case class Directorysearch(usuario_id: Int, padre_id: Int)
+
+case class DirectoryRenameModel(id: Int, nuevoNombre: String)

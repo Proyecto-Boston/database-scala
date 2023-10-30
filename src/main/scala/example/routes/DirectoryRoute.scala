@@ -6,7 +6,7 @@ import controllers.DirectoryController
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.generic.auto._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import models.{DirectoryModel, DirectoryCreateModel, SubDirectoryCreateModel, Directorysearch}
+import models.{DirectoryModel, DirectoryCreateModel, SubDirectoryCreateModel, Directorysearch, DirectoryRenameModel}
 import scala.concurrent.Future
 import com.typesafe.config.ConfigFactory
 
@@ -126,6 +126,17 @@ class DirectoryRoute(directoryController: DirectoryController) {
             onSuccess(result) {
               case Right(message)     => complete(StatusCodes.OK, message)
               case Left(errorMessage) => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
+            }
+          }
+        }
+      } ~ path("rename") {
+        put {
+          entity(as[DirectoryRenameModel]) { directory =>
+            val result: Future[Either[String, String]] =
+              directoryController.renombrarDirectorio(directory.id, directory.nuevoNombre)
+            onSuccess(result) {
+              case Right(newDirectory) => complete(StatusCodes.Created, newDirectory)
+              case Left(errorMessage)  => complete(HttpResponse(StatusCodes.InternalServerError, entity = errorMessage))
             }
           }
         }
